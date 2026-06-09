@@ -192,3 +192,13 @@ Turns the captured data into management decisions.
 - Passwords are stored as PBKDF2-HMAC-SHA256 hashes (standard library only).
 - A default **admin / admin** account is created on first run — change it
   immediately (set `PRINTSYS_ADMIN_PASS` to seed a different password).
+
+## Module 8 — PDF & Email
+
+- **PDF documents** — quotations, invoices and delivery orders render to clean
+  A4 PDFs server-side with ReportLab (no system libraries needed). "PDF" button
+  on each document.
+- **Email** — send the PDF straight to the customer from the document screen.
+  Configure SMTP (host/port/from/credentials/TLS) under **Settings**; if it's
+  left blank, email is disabled but PDF download still works. SMTP errors are
+  reported back to the user, never crashing the request.

@@ -14,7 +14,16 @@
     <button class="btn btn-outline-success btn-sm"><i class="bi bi-receipt me-1"></i>Invoice</button>
   </form>
   {% endif %}
-  <a href="/quotations/{{ q.id }}/print" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-printer me-1"></i>Print</a>
+  <a href="/quotations/{{ q.id }}/pdf" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-file-pdf me-1"></i>PDF</a>
+  <div class="dropdown d-inline">
+    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown"><i class="bi bi-envelope me-1"></i>Email</button>
+    <form action="/quotations/{{ q.id }}/email" method="post" class="dropdown-menu dropdown-menu-end p-3" style="min-width:280px">
+      <label class="form-label small">Send PDF to</label>
+      <input name="to" class="form-control form-control-sm mb-2" value="{{ q.customer.email }}" placeholder="email@customer.com">
+      <button class="btn btn-primary btn-sm w-100">Send quotation</button>
+    </form>
+  </div>
+  <a href="/quotations/{{ q.id }}/print" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-printer"></i></a>
   <a href="/quotations/{{ q.id }}/edit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i></a>
 {% endblock %}
 {% block content %}

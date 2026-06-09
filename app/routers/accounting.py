@@ -8,11 +8,13 @@ Accounts-Receivable aging are derived from invoice totals minus payments.
 from datetime import date, timedelta
 
 from fastapi import APIRouter, Depends, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from .. import pdf
 from ..database import get_db
+from ..mailer import send_email
 from ..models import (
     PAYMENT_METHODS,
     Customer,
@@ -223,6 +225,46 @@ def print_invoice(iid: int, request: Request, db: Session = Depends(get_db)):
     return templates.TemplateResponse(
         request, "invoices/print.html", {"inv": inv, "settings": get_settings(db)}
     )
+
+
+def _pdf_response(data: bytes, filename: str) -> Response:
+    return Response(content=data, media_type="application/pdf",
+                    headers={"Content-Disposition": f'inline; filename="{filename}"'})
+
+
+@router.get("/invoices/{iid}/pdf")
+def invoice_pdf_view(iid: int, request: Request, db: Session = Depends(get_db)):
+    inv = db.get(Invoice, iid)
+    if not inv:
+        return RedirectResponse("/invoices", status_code=303)
+    return _pdf_response(pdf.invoice_pdf(inv, get_settings(db)), f"{inv.number}.pdf")
+
+
+@router.post("/invoices/{iid}/email")
+async def invoice_email(iid: int, request: Request, db: Session = Depends(get_db)):
+    inv = db.get(Invoice, iid)
+    if not inv:
+        return RedirectResponse("/invoices", status_code=303)
+    settings = get_settings(db)
+    form = await request.form()
+    to = (form.get("to") or inv.customer.email or "").strip()
+    data = pdf.invoice_pdf(inv, settings)
+    ok, msg = send_email(
+        settings, to,
+        subject=f"Invoice {inv.number} from {settings.company_name}",
+        body=f"Dear {inv.customer.name},\n\nPlease find attached invoice {inv.number} "
+             f"for {settings.currency} {inv.total:,.2f}.\n\nThank you.\n{settings.company_name}",
+        attachment=data, attachment_name=f"{inv.number}.pdf")
+    flash(request, msg, "success" if ok else "danger")
+    return RedirectResponse(f"/invoices/{iid}", status_code=303)
+
+
+@router.get("/delivery-orders/{did}/pdf")
+def do_pdf_view(did: int, request: Request, db: Session = Depends(get_db)):
+    do = db.get(DeliveryOrder, did)
+    if not do:
+        return RedirectResponse("/delivery-orders", status_code=303)
+    return _pdf_response(pdf.delivery_order_pdf(do, get_settings(db)), f"{do.number}.pdf")
 
 
 # --- invoice line items (inline add / edit / delete) --- #

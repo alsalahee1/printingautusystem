@@ -8,11 +8,13 @@ endpoint that powers the live price preview on the item form.
 from datetime import date, timedelta
 
 from fastapi import APIRouter, Depends, Request
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from .. import pdf
 from ..database import get_db
+from ..mailer import send_email
 from ..estimating import EstimateInput, FinishingSpec, estimate
 from ..models import (
     QUOTATION_STATUSES,
@@ -386,6 +388,35 @@ def print_quotation(qid: int, request: Request, db: Session = Depends(get_db)):
     )
 
 
+@router.get("/quotations/{qid}/pdf")
+def quotation_pdf_view(qid: int, request: Request, db: Session = Depends(get_db)):
+    q = db.get(Quotation, qid)
+    if not q:
+        return RedirectResponse("/quotations", status_code=303)
+    data = pdf.quotation_pdf(q, get_settings(db))
+    return Response(content=data, media_type="application/pdf",
+                    headers={"Content-Disposition": f'inline; filename="{q.number}.pdf"'})
+
+
+@router.post("/quotations/{qid}/email")
+async def quotation_email(qid: int, request: Request, db: Session = Depends(get_db)):
+    q = db.get(Quotation, qid)
+    if not q:
+        return RedirectResponse("/quotations", status_code=303)
+    settings = get_settings(db)
+    form = await request.form()
+    to = (form.get("to") or q.customer.email or "").strip()
+    data = pdf.quotation_pdf(q, settings)
+    ok, msg = send_email(
+        settings, to,
+        subject=f"Quotation {q.number} from {settings.company_name}",
+        body=f"Dear {q.customer.name},\n\nPlease find attached quotation {q.number} "
+             f"for {settings.currency} {q.total:,.2f}.\n\nThank you.\n{settings.company_name}",
+        attachment=data, attachment_name=f"{q.number}.pdf")
+    flash(request, msg, "success" if ok else "danger")
+    return RedirectResponse(f"/quotations/{qid}", status_code=303)
+
+
 # --------------------------------------------------------------------------- #
 # Settings
 # --------------------------------------------------------------------------- #
@@ -415,6 +446,13 @@ async def save_settings(request: Request, db: Session = Depends(get_db)):
     s.tax_pct = _f(form, "tax_pct", float, s.tax_pct)
     s.quotation_validity_days = int(_f(form, "quotation_validity_days", int, s.quotation_validity_days))
     s.quotation_terms = form.get("quotation_terms") or ""
+    s.smtp_host = form.get("smtp_host") or ""
+    s.smtp_port = int(_f(form, "smtp_port", int, s.smtp_port or 587))
+    s.smtp_from = form.get("smtp_from") or ""
+    s.smtp_user = form.get("smtp_user") or ""
+    if form.get("smtp_pass"):
+        s.smtp_pass = form.get("smtp_pass")
+    s.smtp_use_tls = form.get("smtp_use_tls") is not None
     db.commit()
     flash(request, "Settings saved.", "success")
     return RedirectResponse("/settings", status_code=303)

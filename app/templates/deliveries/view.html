@@ -2,6 +2,7 @@
 {% block title %}{{ do.number }}{% endblock %}
 {% block heading %}<i class="bi bi-box-arrow-right me-2"></i>{{ do.number }}{% endblock %}
 {% block actions %}
+  <a href="/delivery-orders/{{ do.id }}/pdf" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-file-pdf me-1"></i>PDF</a>
   <a href="/delivery-orders/{{ do.id }}/print" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-printer me-1"></i>Print</a>
 {% endblock %}
 {% block content %}

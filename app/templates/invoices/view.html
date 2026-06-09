@@ -5,7 +5,16 @@
   {% if inv.is_overdue %}<span class="badge bg-danger">{{ inv.days_overdue }}d overdue</span>{% endif %}
 {% endblock %}
 {% block actions %}
-  <a href="/invoices/{{ inv.id }}/print" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-printer me-1"></i>Print</a>
+  <a href="/invoices/{{ inv.id }}/pdf" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-file-pdf me-1"></i>PDF</a>
+  <div class="dropdown d-inline">
+    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown"><i class="bi bi-envelope me-1"></i>Email</button>
+    <form action="/invoices/{{ inv.id }}/email" method="post" class="dropdown-menu dropdown-menu-end p-3" style="min-width:280px">
+      <label class="form-label small">Send PDF to</label>
+      <input name="to" class="form-control form-control-sm mb-2" value="{{ inv.customer.email }}" placeholder="email@customer.com">
+      <button class="btn btn-primary btn-sm w-100">Send invoice</button>
+    </form>
+  </div>
+  <a href="/invoices/{{ inv.id }}/print" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-printer"></i></a>
   <a href="/invoices/{{ inv.id }}/edit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i></a>
   <form action="/invoices/{{ inv.id }}/cancel" method="post" class="d-inline">
     <button class="btn btn-outline-warning btn-sm">{{ "Reopen" if inv.cancelled else "Cancel" }}</button>

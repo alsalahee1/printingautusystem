@@ -189,6 +189,14 @@ class Settings(Base):
     )
     next_quotation_no: Mapped[int] = mapped_column(Integer, default=1)
 
+    # Outgoing email (SMTP) — used to email PDF quotes/invoices.
+    smtp_host: Mapped[str] = mapped_column(String(120), default="")
+    smtp_port: Mapped[int] = mapped_column(Integer, default=587)
+    smtp_user: Mapped[str] = mapped_column(String(120), default="")
+    smtp_pass: Mapped[str] = mapped_column(String(255), default="")
+    smtp_from: Mapped[str] = mapped_column(String(120), default="")
+    smtp_use_tls: Mapped[bool] = mapped_column(Boolean, default=True)
+
 
 class Quotation(Base):
     __tablename__ = "quotations"
