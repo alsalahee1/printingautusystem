@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block heading %}Dashboard{% endblock %}
+{% block content %}
+<div class="row g-3 mb-4">
+  {% for s in stats %}
+  <div class="col-sm-6 col-xl">
+    <a href="{{ s.url }}" class="text-decoration-none">
+      <div class="card stat-card shadow-sm h-100">
+        <div class="card-body d-flex align-items-center">
+          <i class="bi {{ s.icon }} fs-1 text-primary me-3"></i>
+          <div>
+            <div class="display-6">{{ s.value }}</div>
+            <div class="text-muted small">{{ s.label }}</div>
+          </div>
+        </div>
+      </div>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white"><i class="bi bi-exclamation-triangle text-warning me-2"></i>Low-stock alerts</div>
+      <div class="card-body p-0">
+        {% if low_stock %}
+        <table class="table table-sm mb-0">
+          <thead><tr><th class="ps-3">Code</th><th>Item</th><th class="text-end">On Hand</th><th class="text-end pe-3">Reorder At</th></tr></thead>
+          <tbody>
+          {% for item in low_stock %}
+            <tr>
+              <td class="ps-3">{{ item.code }}</td>
+              <td>{{ item.name }}</td>
+              <td class="text-end text-danger fw-semibold">{{ item.qty_on_hand|round(1) }}</td>
+              <td class="text-end pe-3">{{ item.reorder_level|round(1) }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted text-center py-4 mb-0">All stock above reorder levels. </p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white"><i class="bi bi-info-circle me-2"></i>Getting started</div>
+      <div class="card-body">
+        <p class="text-muted small">Module 1 — Foundation &amp; Master Data is live. Set up your shop's reference data, then we'll build estimation on top of it.</p>
+        <ol class="small mb-0">
+          <li>Add your <a href="/customers">customers</a> and <a href="/suppliers">suppliers</a>.</li>
+          <li>Define <a href="/stock">paper &amp; stock</a> (GSM, sheet size, cost).</li>
+          <li>List <a href="/finishing">finishing</a> operations and their rates.</li>
+          <li>Register <a href="/machines">machines</a> with hourly &amp; make-ready rates.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

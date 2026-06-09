@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}{{ cfg.singular }}{% endblock %}
+{% block heading %}
+  <i class="bi {{ cfg.icon }} me-2"></i>{{ "Edit" if obj else "New" }} {{ cfg.singular }}
+{% endblock %}
+{% block content %}
+{% set action = "/" ~ cfg.slug ~ "/" ~ obj.id ~ "/edit" if obj else "/" ~ cfg.slug ~ "/new" %}
+<form method="post" action="{{ action }}" class="card shadow-sm">
+  <div class="card-body">
+    <div class="row g-3">
+      {% set ns = namespace(group="") %}
+      {% for f in cfg.fields %}
+        {% if f.group and f.group != ns.group %}
+          {% set ns.group = f.group %}
+          <div class="col-12"><h6 class="text-uppercase text-muted small mt-2 mb-0">{{ f.group }}</h6><hr class="mt-1"></div>
+        {% endif %}
+        {% set current = (obj[f.name] if obj else f.default) %}
+        {% if f.type == 'checkbox' %}
+          <div class="col-md-6">
+            <div class="form-check mt-4">
+              <input class="form-check-input" type="checkbox" name="{{ f.name }}" id="{{ f.name }}"
+                     {{ "checked" if (current if obj is not none else true) else "" }}>
+              <label class="form-check-label" for="{{ f.name }}">{{ f.label }}</label>
+            </div>
+          </div>
+        {% else %}
+          <div class="col-md-6 {{ 'required' if f.required else '' }}">
+            <label class="form-label" for="{{ f.name }}">{{ f.label }}</label>
+            {% if f.type == 'textarea' %}
+              <textarea class="form-control" name="{{ f.name }}" id="{{ f.name }}" rows="2">{{ current or '' }}</textarea>
+            {% elif f.type == 'select' %}
+              {% set choices = (dyn_options.get(f.options_key, []) if f.options_key else f.options) %}
+              <select class="form-select" name="{{ f.name }}" id="{{ f.name }}" {{ 'required' if f.required else '' }}>
+                {% if not f.required %}<option value="">— none —</option>{% endif %}
+                {% for value, label in choices %}
+                  <option value="{{ value }}" {{ 'selected' if (current|string == value|string) else '' }}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            {% else %}
+              <input class="form-control" type="{{ f.type }}" name="{{ f.name }}" id="{{ f.name }}"
+                     value="{{ current if current not in (None, 0) or f.type != 'number' else (current or '') }}"
+                     {% if f.type == 'number' %}step="{{ f.step }}"{% endif %}
+                     {{ 'required' if f.required else '' }}>
+            {% endif %}
+            {% if f.help %}<div class="form-text">{{ f.help }}</div>{% endif %}
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+  <div class="card-footer d-flex justify-content-between">
+    <a href="/{{ cfg.slug }}" class="btn btn-outline-secondary">Cancel</a>
+    <button class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Save {{ cfg.singular }}</button>
+  </div>
+</form>
+{% endblock %}

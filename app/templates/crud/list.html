@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}{{ cfg.plural }}{% endblock %}
+{% block heading %}<i class="bi {{ cfg.icon }} me-2"></i>{{ cfg.plural }}{% endblock %}
+{% block actions %}
+  <a href="/{{ cfg.slug }}/new" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>New {{ cfg.singular }}</a>
+{% endblock %}
+{% block content %}
+<div class="card shadow-sm">
+  <div class="card-body p-0">
+    {% if rows %}
+    <table class="table table-hover align-middle mb-0">
+      <thead><tr>
+        {% for col in cfg.columns %}<th>{{ col.label }}</th>{% endfor %}
+        <th class="text-end pe-3">Actions</th>
+      </tr></thead>
+      <tbody>
+      {% for obj in rows %}
+        <tr>
+          {% for col in cfg.columns %}
+            {% set val = col.accessor(obj) if col.accessor else obj[col.name] %}
+            <td>
+              {% if col.kind == 'money' %}{{ "%.2f"|format(val or 0) }}
+              {% elif col.kind == 'bool' %}
+                {% if val %}<span class="badge bg-success">Yes</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}
+              {% elif col.kind == 'badge' %}<span class="badge bg-info text-dark">{{ val }}</span>
+              {% else %}{{ val if val not in (None, '') else '—' }}{% endif %}
+            </td>
+          {% endfor %}
+          <td class="text-end pe-3">
+            <a href="/{{ cfg.slug }}/{{ obj.id }}/edit" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+            <form action="/{{ cfg.slug }}/{{ obj.id }}/delete" method="post" class="d-inline"
+                  onsubmit="return confirm('Delete this {{ cfg.singular|lower }}?');">
+              <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="text-center text-muted py-5">
+      <i class="bi {{ cfg.icon }} fs-1 d-block mb-2"></i>
+      No {{ cfg.plural|lower }} yet.
+      <a href="/{{ cfg.slug }}/new">Add the first one</a>.
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% if rows %}<p class="text-muted small mt-2">{{ rows|length }} {{ cfg.plural|lower }}.</p>{% endif %}
+{% endblock %}

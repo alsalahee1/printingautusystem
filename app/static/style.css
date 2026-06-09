@@ -1,0 +1,19 @@
+:root { --sidebar-w: 230px; }
+body { background: #f4f6f9; }
+.sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  min-height: 100vh;
+  position: sticky;
+  top: 0;
+}
+.sidebar .nav-link { color: #cbd3da; padding: .4rem .6rem; border-radius: .4rem; }
+.sidebar .nav-link:hover { background: rgba(255,255,255,.08); color: #fff; }
+.sidebar .nav-link.active { background: #0d6efd; color: #fff; }
+.sidebar .nav-link.disabled { color: #6c757d; }
+.content { min-height: 100vh; }
+.topbar { position: sticky; top: 0; z-index: 5; }
+.stat-card { border: none; border-left: 4px solid #0d6efd; }
+.stat-card .display-6 { font-weight: 600; }
+.table thead th { font-size: .78rem; text-transform: uppercase; letter-spacing: .03em; color: #6c757d; }
+.required label::after { content: " *"; color: #dc3545; }
