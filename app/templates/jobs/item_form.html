@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Job Item{% endblock %}
+{% block heading %}<i class="bi bi-box me-2"></i>{{ "Edit" if obj else "Add" }} Item — {{ job.number }}{% endblock %}
+{% block content %}
+<form method="post"
+      action="{{ '/jobs/' ~ job.id ~ '/items/' ~ obj.id ~ '/edit' if obj else '/jobs/' ~ job.id ~ '/items/new' }}"
+      class="card shadow-sm">
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-12 required">
+        <label class="form-label">Item title</label>
+        <input name="title" class="form-control" required value="{{ obj.title if obj else '' }}">
+      </div>
+      <div class="col-md-3 required">
+        <label class="form-label">Quantity</label>
+        <input type="number" name="quantity" class="form-control" value="{{ obj.quantity if obj else '' }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Width (mm)</label>
+        <input type="number" step="any" name="finished_width_mm" class="form-control" value="{{ obj.finished_width_mm if obj else '' }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Height (mm)</label>
+        <input type="number" step="any" name="finished_height_mm" class="form-control" value="{{ obj.finished_height_mm if obj else '' }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Colours (F/B)</label>
+        <div class="input-group">
+          <input type="number" name="colors_front" class="form-control" value="{{ obj.colors_front if obj else 4 }}">
+          <span class="input-group-text">/</span>
+          <input type="number" name="colors_back" class="form-control" value="{{ obj.colors_back if obj else 0 }}">
+        </div>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Paper</label>
+        <select name="paper_id" class="form-select">
+          <option value="">— select paper —</option>
+          {% for p in papers %}
+            <option value="{{ p.id }}" {{ 'selected' if obj and obj.paper_id == p.id else '' }}>
+              {{ p.name }}{% if p.gsm %} ({{ p.gsm }}gsm){% endif %}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Machine</label>
+        <select name="machine_id" class="form-select">
+          <option value="">— select machine —</option>
+          {% for m in machines %}
+            <option value="{{ m.id }}" {{ 'selected' if obj and obj.machine_id == m.id else '' }}>{{ m.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12"><h6 class="text-uppercase text-muted small mt-2 mb-0">Production figures</h6><hr class="mt-1"></div>
+      <div class="col-md-4">
+        <label class="form-label">Ups (pieces/sheet)</label>
+        <input type="number" name="ups" class="form-control" value="{{ obj.ups if obj else 0 }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Total sheets</label>
+        <input type="number" name="total_sheets" class="form-control" value="{{ obj.total_sheets if obj else 0 }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Plates</label>
+        <input type="number" name="num_plates" class="form-control" value="{{ obj.num_plates if obj else 0 }}">
+      </div>
+      <div class="col-12">
+        <label class="form-label">Finishing summary</label>
+        <input name="finishing_summary" class="form-control" value="{{ obj.finishing_summary if obj else '' }}"
+               placeholder="e.g. Gloss lamination, die-cut, saddle stitch">
+      </div>
+      <div class="col-12">
+        <label class="form-label">Notes</label>
+        <textarea name="notes" class="form-control" rows="2">{{ obj.notes if obj else '' }}</textarea>
+      </div>
+    </div>
+  </div>
+  <div class="card-footer d-flex justify-content-between">
+    <a href="/jobs/{{ job.id }}" class="btn btn-outline-secondary">Cancel</a>
+    <button class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>{{ "Save Item" if obj else "Add Item" }}</button>
+  </div>
+</form>
+{% endblock %}

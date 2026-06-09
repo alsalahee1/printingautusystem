@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}{{ "Edit" if obj else "New" }} Job{% endblock %}
+{% block heading %}<i class="bi bi-kanban me-2"></i>{{ "Edit Job " ~ obj.number if obj else "New Job" }}{% endblock %}
+{% block content %}
+<form method="post" action="{{ '/jobs/' ~ obj.id ~ '/edit' if obj else '/jobs/new' }}" class="card shadow-sm">
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-md-6 required">
+        <label class="form-label">Customer</label>
+        <select name="customer_id" class="form-select" required>
+          <option value="">— select customer —</option>
+          {% for c in customers %}
+            <option value="{{ c.id }}" {{ 'selected' if obj and obj.customer_id == c.id else '' }}>
+              {{ c.code }} — {{ c.name }}{% if c.company %} ({{ c.company }}){% endif %}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Job title</label>
+        <input name="title" class="form-control" value="{{ obj.title if obj else '' }}" placeholder="e.g. Company brochure — June">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Status</label>
+        <select name="status" class="form-select">
+          {% for s in statuses %}<option value="{{ s }}" {{ 'selected' if obj and obj.status == s else '' }}>{{ s }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Priority</label>
+        <select name="priority" class="form-select">
+          {% for p in priorities %}<option value="{{ p }}" {{ 'selected' if obj and obj.priority == p else ('selected' if not obj and p == 'Normal' else '') }}>{{ p }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Order date</label>
+        <input type="date" name="order_date" class="form-control" value="{{ order_date }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Due date</label>
+        <input type="date" name="due_date" class="form-control" value="{{ due_date }}">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Assigned to</label>
+        <input name="assigned_to" class="form-control" value="{{ obj.assigned_to if obj else '' }}" placeholder="Operator / team">
+      </div>
+      <div class="col-12">
+        <label class="form-label">Notes</label>
+        <textarea name="notes" class="form-control" rows="2">{{ obj.notes if obj else '' }}</textarea>
+      </div>
+    </div>
+  </div>
+  <div class="card-footer d-flex justify-content-between">
+    <a href="{{ '/jobs/' ~ obj.id if obj else '/jobs' }}" class="btn btn-outline-secondary">Cancel</a>
+    <button class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>{{ "Save Changes" if obj else "Create Job" }}</button>
+  </div>
+</form>
+{% endblock %}

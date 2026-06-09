@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}{{ job.number }}{% endblock %}
+{% block heading %}<i class="bi bi-kanban me-2"></i>{{ job.number }}
+  <span class="badge bg-{{ job.status_color }} ms-2">{{ job.status }}</span>
+  <span class="badge bg-{{ job.priority_color }}">{{ job.priority }}</span>
+  {% if job.is_overdue %}<span class="badge bg-danger">Overdue</span>{% endif %}
+{% endblock %}
+{% block actions %}
+  <a href="/jobs/{{ job.id }}/items/new" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Add Item</a>
+  <a href="/jobs/{{ job.id }}/edit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i></a>
+{% endblock %}
+{% block content %}
+<div class="row g-3 mb-3">
+  <div class="col-md-8">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <div class="row">
+        <div class="col-sm-4">
+          <div class="text-muted small">Customer</div>
+          <div class="fw-semibold">{{ job.customer.name }}</div>
+          {% if job.customer.company %}<div>{{ job.customer.company }}</div>{% endif %}
+        </div>
+        <div class="col-sm-2"><div class="text-muted small">Order</div><div>{{ job.order_date }}</div></div>
+        <div class="col-sm-2"><div class="text-muted small">Due</div>
+          <div class="{{ 'text-danger fw-semibold' if job.is_overdue else '' }}">{{ job.due_date or '—' }}</div></div>
+        <div class="col-sm-4"><div class="text-muted small">Assigned to</div><div>{{ job.assigned_to or '—' }}</div></div>
+      </div>
+      {% if job.quotation %}<div class="small mt-2 text-muted">From quotation
+        <a href="/quotations/{{ job.quotation_id }}">{{ job.quotation.number }}</a></div>{% endif %}
+      {% if job.title %}<hr><div><span class="text-muted small">Title:</span> {{ job.title }}</div>{% endif %}
+      {% if job.notes %}<div class="small text-muted mt-1">{{ job.notes }}</div>{% endif %}
+    </div></div>
+  </div>
+  <div class="col-md-4">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <div class="d-flex justify-content-between align-items-baseline">
+        <span class="text-muted small">Production progress</span>
+        <span class="fw-bold">{{ job.progress }}%</span>
+      </div>
+      <div class="progress my-2" style="height:10px">
+        <div class="progress-bar bg-{{ job.status_color }}" style="width: {{ job.progress }}%"></div>
+      </div>
+      <form action="/jobs/{{ job.id }}/status" method="post" class="d-flex gap-2 mt-2">
+        <select name="status" class="form-select form-select-sm">
+          {% for s in statuses %}<option value="{{ s }}" {{ 'selected' if job.status == s else '' }}>{{ s }}</option>{% endfor %}
+        </select>
+        <button class="btn btn-sm btn-outline-primary">Set</button>
+      </form>
+    </div></div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Production stages -->
+  <div class="col-lg-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white fw-semibold"><i class="bi bi-list-check me-1"></i>Production stages</div>
+      <ul class="list-group list-group-flush">
+        {% for st in job.stages %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <form action="/jobs/{{ job.id }}/stages/{{ st.id }}/toggle" method="post" class="d-flex align-items-center gap-2 m-0 flex-grow-1">
+            <input type="checkbox" class="form-check-input mt-0" onchange="this.form.submit()" {{ 'checked' if st.done else '' }}>
+            <span class="{{ 'text-decoration-line-through text-muted' if st.done else '' }}">{{ st.name }}</span>
+          </form>
+          {% if st.done and st.completed_at %}
+            <span class="badge bg-success-subtle text-success small">{{ st.completed_at.strftime('%d %b %H:%M') }}</span>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <!-- Print jobs / items -->
+  <div class="col-lg-8">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white fw-semibold">Print jobs ({{ job.items|length }})</div>
+      <div class="card-body p-0">
+        {% if job.items %}
+        <table class="table align-middle mb-0">
+          <thead><tr>
+            <th class="ps-3">#</th><th>Item</th><th>Spec</th><th class="text-end">Qty</th><th></th>
+          </tr></thead>
+          <tbody>
+          {% for it in job.items %}
+            <tr>
+              <td class="ps-3">{{ it.line_no }}</td>
+              <td>
+                <div class="fw-semibold">{{ it.title }}</div>
+                {% if it.finishing_summary %}<div class="small text-muted">{{ it.finishing_summary }}</div>{% endif %}
+              </td>
+              <td class="small text-muted">
+                {{ it.finished_width_mm|int }}×{{ it.finished_height_mm|int }}mm · {{ it.colors_front }}/{{ it.colors_back }}<br>
+                {{ it.paper.name if it.paper else '—' }}
+                {% if it.machine %}· {{ it.machine.name }}{% endif %}<br>
+                {{ it.ups }}-up · {{ it.total_sheets }} sheets · {{ it.num_plates }} plates
+              </td>
+              <td class="text-end">{{ it.quantity }}</td>
+              <td class="text-end pe-3">
+                <a href="/jobs/{{ job.id }}/items/{{ it.id }}/edit" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                <form action="/jobs/{{ job.id }}/items/{{ it.id }}/delete" method="post" class="d-inline" onsubmit="return confirm('Remove item?')">
+                  <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="text-center text-muted py-4">No items. <a href="/jobs/{{ job.id }}/items/new">Add one</a>.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mt-3">
+  <form action="/jobs/{{ job.id }}/delete" method="post" onsubmit="return confirm('Delete job {{ job.number }}?')">
+    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash me-1"></i>Delete job</button>
+  </form>
+</div>
+{% endblock %}

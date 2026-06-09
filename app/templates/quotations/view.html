@@ -4,6 +4,12 @@
   <span class="badge bg-{{ q.status_color }} ms-2">{{ q.status }}</span>{% endblock %}
 {% block actions %}
   <a href="/quotations/{{ q.id }}/items/new" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Add Print Job</a>
+  {% if q.items %}
+  <form action="/jobs/from-quotation/{{ q.id }}" method="post" class="d-inline"
+        onsubmit="return confirm('Create a production job card from {{ q.number }}?')">
+    <button class="btn btn-success btn-sm"><i class="bi bi-kanban me-1"></i>Convert to Job</button>
+  </form>
+  {% endif %}
   <a href="/quotations/{{ q.id }}/print" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-printer me-1"></i>Print</a>
   <a href="/quotations/{{ q.id }}/edit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i></a>
 {% endblock %}

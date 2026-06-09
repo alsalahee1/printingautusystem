@@ -16,7 +16,8 @@ of standard sales, invoicing and accounts-receivable.
 |---|--------|--------|
 | **1** | **Foundation + Master Data** — Customers, Suppliers, Stock & Paper (GSM/sheet size/cost), Finishing types, Machines (rates) | ✅ Done |
 | **2** | **Job Estimation + Quotation** — imposition, plate/make-ready/press/paper/ink/finishing costing, live price preview, printable quotes | ✅ Done |
-| 3 | Work-Order / Job tracking (pre-press → press → post-press) | ⏳ Next |
+| **3** | **Work-Order / Job tracking** — convert quote → job card, production stages (pre-press → delivery), progress, due dates, priorities | ✅ Done |
+| 4 | Core accounting (Sales Order → Delivery Order → Invoice → Receipt + AR) | ⏳ Next |
 | 4 | Core accounting (Sales Order → Delivery Order → Invoice → Receipt + AR) | ⏳ Planned |
 | 5 | Inventory + Purchasing (stock movements, AP) | ⏳ Planned |
 | 6 | Reports + GL (sales, AR aging, job profitability) | ⏳ Planned |
@@ -113,3 +114,20 @@ The printing-specific costing engine and quoting workflow.
   print or save as PDF.
 - **Settings** — company details (for the quote header) plus costing defaults
   (plate cost, ink rate, default wastage/markup, overhead, tax, validity).
+
+## Module 3 — Work-Orders / Job Cards
+
+Turns sales into production tracking.
+
+- **Convert quotation → job card** — one click on a quotation copies every line's
+  spec (paper, size, colours, ups, sheets, plates, finishing) onto a job card.
+- **Production stages** — each job is seeded with a checklist (Pre-press → CTP /
+  Plates → Printing → Finishing → Cutting & QC → Delivery). The shop floor ticks
+  stages off; each records a completion timestamp and the job's progress %.
+- **Status & priority** — Pre-press / Printing / Post-press / Ready / Delivered /
+  On Hold / Cancelled, with Low–Urgent priority and **overdue** highlighting.
+- **Job board** — filter jobs by status, see progress bars and due dates.
+- **Manual jobs** — create a job card directly (with editable production items)
+  when there's no originating quotation.
+- The **dashboard** now surfaces active jobs, jobs due within 3 days, and open
+  quotations alongside low-stock alerts.

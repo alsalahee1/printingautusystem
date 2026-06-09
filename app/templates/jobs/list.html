@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Job Cards{% endblock %}
+{% block heading %}<i class="bi bi-kanban me-2"></i>Job Cards{% endblock %}
+{% block actions %}
+  <a href="/jobs/new" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>New Job</a>
+{% endblock %}
+{% block content %}
+<ul class="nav nav-pills mb-3 small">
+  <li class="nav-item"><a class="nav-link {{ 'active' if not active_status else '' }}" href="/jobs">All</a></li>
+  {% for s in statuses %}
+  <li class="nav-item">
+    <a class="nav-link {{ 'active' if active_status == s else '' }}" href="/jobs?status={{ s }}">
+      {{ s }} <span class="badge bg-{{ 'light text-dark' if active_status != s else 'white text-primary' }}">{{ counts[s] }}</span>
+    </a>
+  </li>
+  {% endfor %}
+</ul>
+
+<div class="card shadow-sm">
+  <div class="card-body p-0">
+    {% if rows %}
+    <table class="table table-hover align-middle mb-0">
+      <thead><tr>
+        <th class="ps-3">Job #</th><th>Title</th><th>Customer</th><th>Status</th>
+        <th>Priority</th><th>Due</th><th style="width:140px">Progress</th><th></th>
+      </tr></thead>
+      <tbody>
+      {% for j in rows %}
+        <tr>
+          <td class="ps-3"><a href="/jobs/{{ j.id }}" class="fw-semibold text-decoration-none">{{ j.number }}</a></td>
+          <td>{{ j.title or '—' }}</td>
+          <td>{{ j.customer.name }}</td>
+          <td><span class="badge bg-{{ j.status_color }}">{{ j.status }}</span></td>
+          <td><span class="badge bg-{{ j.priority_color }}">{{ j.priority }}</span></td>
+          <td class="{{ 'text-danger fw-semibold' if j.is_overdue else '' }}">
+            {{ j.due_date or '—' }}{% if j.is_overdue %} <i class="bi bi-exclamation-triangle"></i>{% endif %}
+          </td>
+          <td>
+            <div class="progress" style="height:16px">
+              <div class="progress-bar bg-{{ j.status_color }}" style="width: {{ j.progress }}%">{{ j.progress }}%</div>
+            </div>
+          </td>
+          <td class="text-end pe-3"><a href="/jobs/{{ j.id }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i></a></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="text-center text-muted py-5">
+      <i class="bi bi-kanban fs-1 d-block mb-2"></i>
+      No jobs{{ ' with status ' ~ active_status if active_status else '' }} yet.
+      Convert an approved <a href="/quotations">quotation</a> or <a href="/jobs/new">create one manually</a>.
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

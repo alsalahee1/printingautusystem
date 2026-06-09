@@ -47,15 +47,29 @@
   </div>
   <div class="col-lg-5">
     <div class="card shadow-sm h-100">
-      <div class="card-header bg-white"><i class="bi bi-info-circle me-2"></i>Getting started</div>
-      <div class="card-body">
-        <p class="text-muted small">Module 1 — Foundation &amp; Master Data is live. Set up your shop's reference data, then we'll build estimation on top of it.</p>
-        <ol class="small mb-0">
-          <li>Add your <a href="/customers">customers</a> and <a href="/suppliers">suppliers</a>.</li>
-          <li>Define <a href="/stock">paper &amp; stock</a> (GSM, sheet size, cost).</li>
-          <li>List <a href="/finishing">finishing</a> operations and their rates.</li>
-          <li>Register <a href="/machines">machines</a> with hourly &amp; make-ready rates.</li>
-        </ol>
+      <div class="card-header bg-white d-flex justify-content-between">
+        <span><i class="bi bi-kanban me-2"></i>Active jobs</span>
+        <a href="/jobs" class="small text-decoration-none">View all</a>
+      </div>
+      <div class="card-body p-0">
+        {% if active_jobs %}
+        <table class="table table-sm mb-0">
+          <thead><tr><th class="ps-3">Job</th><th>Status</th><th class="text-end">Progress</th><th class="text-end pe-3">Due</th></tr></thead>
+          <tbody>
+          {% for j in active_jobs %}
+            <tr>
+              <td class="ps-3"><a href="/jobs/{{ j.id }}" class="text-decoration-none">{{ j.number }}</a>
+                <div class="small text-muted">{{ j.customer.name }}</div></td>
+              <td><span class="badge bg-{{ j.status_color }}">{{ j.status }}</span></td>
+              <td class="text-end">{{ j.progress }}%</td>
+              <td class="text-end pe-3 {{ 'text-danger fw-semibold' if j.is_overdue else '' }}">{{ j.due_date or '—' }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted text-center py-4 mb-0">No active jobs. Convert an approved <a href="/quotations">quotation</a> to start.</p>
+        {% endif %}
       </div>
     </div>
   </div>

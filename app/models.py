@@ -284,3 +284,111 @@ class QuotationItemFinishing(Base):
 
     item: Mapped["QuotationItem"] = relationship(back_populates="finishings")
     finishing: Mapped["FinishingType"] = relationship()
+
+
+# ---------------------------------------------------------------------------
+# Module 3: Work-Orders / Job Cards
+# ---------------------------------------------------------------------------
+
+JOB_STATUSES = ["Pre-press", "Printing", "Post-press", "Ready", "Delivered", "On Hold", "Cancelled"]
+JOB_STATUS_COLORS = {
+    "Pre-press": "secondary", "Printing": "primary", "Post-press": "info",
+    "Ready": "success", "Delivered": "dark", "On Hold": "warning", "Cancelled": "danger",
+}
+JOB_PRIORITIES = ["Low", "Normal", "High", "Urgent"]
+JOB_PRIORITY_COLORS = {"Low": "secondary", "Normal": "info", "High": "warning", "Urgent": "danger"}
+
+# Production stages every new job card is seeded with (the shop floor ticks
+# these off as the work progresses).
+DEFAULT_JOB_STAGES = ["Pre-press", "CTP / Plates", "Printing", "Finishing", "Cutting & QC", "Delivery"]
+
+
+class Job(Base):
+    """A production work order — usually created from an approved quotation."""
+    __tablename__ = "jobs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    number: Mapped[str] = mapped_column(String(20), unique=True, index=True)
+    quotation_id: Mapped[int | None] = mapped_column(ForeignKey("quotations.id"), nullable=True)
+    customer_id: Mapped[int] = mapped_column(ForeignKey("customers.id"))
+    title: Mapped[str] = mapped_column(String(200), default="")
+    status: Mapped[str] = mapped_column(String(20), default="Pre-press")
+    priority: Mapped[str] = mapped_column(String(10), default="Normal")
+    order_date: Mapped[date] = mapped_column(Date, default=date.today)
+    due_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    assigned_to: Mapped[str] = mapped_column(String(100), default="")
+    notes: Mapped[str] = mapped_column(Text, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    customer: Mapped["Customer"] = relationship()
+    quotation: Mapped["Quotation | None"] = relationship()
+    items: Mapped[list["JobItem"]] = relationship(
+        back_populates="job", cascade="all, delete-orphan", order_by="JobItem.line_no"
+    )
+    stages: Mapped[list["JobStage"]] = relationship(
+        back_populates="job", cascade="all, delete-orphan", order_by="JobStage.seq"
+    )
+
+    @property
+    def status_color(self) -> str:
+        return JOB_STATUS_COLORS.get(self.status, "secondary")
+
+    @property
+    def priority_color(self) -> str:
+        return JOB_PRIORITY_COLORS.get(self.priority, "secondary")
+
+    @property
+    def progress(self) -> int:
+        if not self.stages:
+            return 0
+        done = sum(1 for s in self.stages if s.done)
+        return round(done * 100 / len(self.stages))
+
+    @property
+    def is_overdue(self) -> bool:
+        return bool(
+            self.due_date
+            and self.due_date < date.today()
+            and self.status not in ("Delivered", "Cancelled")
+        )
+
+
+class JobItem(Base):
+    """A print product on a job card — production spec carried from the quote."""
+    __tablename__ = "job_items"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    job_id: Mapped[int] = mapped_column(ForeignKey("jobs.id"))
+    line_no: Mapped[int] = mapped_column(Integer, default=1)
+    title: Mapped[str] = mapped_column(String(200), default="")
+    quantity: Mapped[int] = mapped_column(Integer, default=0)
+    paper_id: Mapped[int | None] = mapped_column(ForeignKey("stock_items.id"), nullable=True)
+    finished_width_mm: Mapped[float] = mapped_column(Float, default=0.0)
+    finished_height_mm: Mapped[float] = mapped_column(Float, default=0.0)
+    colors_front: Mapped[int] = mapped_column(Integer, default=0)
+    colors_back: Mapped[int] = mapped_column(Integer, default=0)
+    machine_id: Mapped[int | None] = mapped_column(ForeignKey("machines.id"), nullable=True)
+    ups: Mapped[int] = mapped_column(Integer, default=0)
+    total_sheets: Mapped[int] = mapped_column(Integer, default=0)
+    num_plates: Mapped[int] = mapped_column(Integer, default=0)
+    finishing_summary: Mapped[str] = mapped_column(String(300), default="")
+    notes: Mapped[str] = mapped_column(Text, default="")
+
+    job: Mapped["Job"] = relationship(back_populates="items")
+    paper: Mapped["StockItem | None"] = relationship()
+    machine: Mapped["Machine | None"] = relationship()
+
+
+class JobStage(Base):
+    """A production stage on a job card with completion status & timestamp."""
+    __tablename__ = "job_stages"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    job_id: Mapped[int] = mapped_column(ForeignKey("jobs.id"))
+    seq: Mapped[int] = mapped_column(Integer, default=0)
+    name: Mapped[str] = mapped_column(String(60))
+    done: Mapped[bool] = mapped_column(Boolean, default=False)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    note: Mapped[str] = mapped_column(String(200), default="")
+
+    job: Mapped["Job"] = relationship(back_populates="stages")
