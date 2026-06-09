@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Sales Summary{% endblock %}
+{% block heading %}<i class="bi bi-graph-up-arrow me-2"></i>Sales Summary{% endblock %}
+{% block content %}
+<form method="get" class="card shadow-sm mb-3"><div class="card-body d-flex align-items-end gap-3">
+  <div><label class="form-label small mb-0">From</label><input type="date" name="start" value="{{ start }}" class="form-control form-control-sm"></div>
+  <div><label class="form-label small mb-0">To</label><input type="date" name="end" value="{{ end }}" class="form-control form-control-sm"></div>
+  <button class="btn btn-primary btn-sm">Apply</button>
+  <div class="ms-auto text-end">
+    <div class="small text-muted">{{ totals.count }} invoices · Invoiced {{ settings.currency }} {{ "%.2f"|format(totals.total) }}
+      · Paid {{ "%.2f"|format(totals.paid) }} · Outstanding <span class="text-danger">{{ "%.2f"|format(totals.balance) }}</span></div>
+  </div>
+</div></form>
+
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white fw-semibold">By month</div>
+      <div class="card-body p-0">
+        {% if months %}
+        <table class="table table-sm mb-0">
+          <thead><tr><th class="ps-3">Month</th><th class="text-end">Invoices</th><th class="text-end">Invoiced</th><th class="text-end pe-3">Paid</th></tr></thead>
+          <tbody>
+          {% for key, m in months %}
+            <tr><td class="ps-3">{{ key }}</td><td class="text-end">{{ m.count }}</td>
+              <td class="text-end">{{ "%.2f"|format(m.total) }}</td>
+              <td class="text-end pe-3 text-success">{{ "%.2f"|format(m.paid) }}</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        {% else %}<p class="text-muted text-center py-4 mb-0">No invoices in this range.</p>{% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white fw-semibold">By customer</div>
+      <div class="card-body p-0">
+        {% if customers %}
+        <table class="table table-sm mb-0">
+          <thead><tr><th class="ps-3">Customer</th><th class="text-end">Invoices</th><th class="text-end">Invoiced</th><th class="text-end pe-3">Outstanding</th></tr></thead>
+          <tbody>
+          {% for c in customers %}
+            <tr><td class="ps-3">{{ c.name }}</td><td class="text-end">{{ c.count }}</td>
+              <td class="text-end">{{ "%.2f"|format(c.total) }}</td>
+              <td class="text-end pe-3 {{ 'text-danger' if c.balance > 0 else '' }}">{{ "%.2f"|format(c.balance) }}</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        {% else %}<p class="text-muted text-center py-4 mb-0">No data.</p>{% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

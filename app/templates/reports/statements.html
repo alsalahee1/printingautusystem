@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Customer Statements{% endblock %}
+{% block heading %}<i class="bi bi-person-lines-fill me-2"></i>Customer Statements{% endblock %}
+{% block content %}
+<div class="card shadow-sm"><div class="card-body p-0">
+  <table class="table table-hover align-middle mb-0">
+    <thead><tr><th class="ps-3">Customer</th><th class="text-end">Outstanding Balance</th><th class="text-end pe-3"></th></tr></thead>
+    <tbody>
+    {% for c, balance in rows %}
+      <tr>
+        <td class="ps-3">{{ c.name }}{% if c.company %}<div class="small text-muted">{{ c.company }}</div>{% endif %}</td>
+        <td class="text-end fw-semibold {{ 'text-danger' if balance > 0 else 'text-muted' }}">{{ settings.currency }} {{ "%.2f"|format(balance) }}</td>
+        <td class="text-end pe-3"><a href="/reports/statements/{{ c.id }}" class="btn btn-sm btn-outline-secondary">Statement</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div></div>
+{% endblock %}

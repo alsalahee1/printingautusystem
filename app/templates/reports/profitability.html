@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Job Profitability{% endblock %}
+{% block heading %}<i class="bi bi-cash-coin me-2"></i>Job Profitability{% endblock %}
+{% block content %}
+<div class="card shadow-sm">
+  <div class="card-body p-0">
+    {% if rows %}
+    <table class="table align-middle mb-0">
+      <thead><tr>
+        <th class="ps-3">Job</th><th>Customer</th>
+        <th class="text-end">Revenue</th><th class="text-end">Est. Cost</th>
+        <th class="text-end">Paper Issued</th><th class="text-end">Margin</th><th class="text-end pe-3">Margin %</th>
+      </tr></thead>
+      <tbody>
+      {% for r in rows %}
+        <tr>
+          <td class="ps-3"><a href="/jobs/{{ r.job.id }}" class="text-decoration-none fw-semibold">{{ r.job.number }}</a>
+            {% if r.invoiced > 0 %}<span class="badge bg-success-subtle text-success small">invoiced</span>
+            {% else %}<span class="badge bg-light text-muted small">quoted</span>{% endif %}</td>
+          <td>{{ r.job.customer.name }}</td>
+          <td class="text-end">{{ "%.2f"|format(r.revenue) }}</td>
+          <td class="text-end">{{ "%.2f"|format(r.est_cost) }}</td>
+          <td class="text-end text-muted">{{ "%.2f"|format(r.actual_paper) }}</td>
+          <td class="text-end fw-semibold {{ 'text-success' if r.margin >= 0 else 'text-danger' }}">{{ "%.2f"|format(r.margin) }}</td>
+          <td class="text-end pe-3 {{ 'text-success' if r.margin_pct >= 0 else 'text-danger' }}">{{ r.margin_pct }}%</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+      <tfoot class="table-light"><tr class="fw-bold">
+        <td class="ps-3" colspan="2">Total</td>
+        <td class="text-end">{{ "%.2f"|format(tot.revenue) }}</td>
+        <td class="text-end">{{ "%.2f"|format(tot.cost) }}</td>
+        <td></td>
+        <td class="text-end {{ 'text-success' if tot.margin >= 0 else 'text-danger' }}">{{ "%.2f"|format(tot.margin) }}</td>
+        <td class="text-end pe-3">{{ tot.margin_pct }}%</td>
+      </tr></tfoot>
+    </table>
+    {% else %}
+    <div class="text-center text-muted py-5"><i class="bi bi-cash-coin fs-1 d-block mb-2"></i>
+      No jobs yet. Convert a quotation to a job to see profitability.</div>
+    {% endif %}
+  </div>
+</div>
+<p class="text-muted small mt-2">Revenue uses the actual invoice total when a job has been invoiced, otherwise the quoted price.
+  Estimated cost is the costing snapshot from the quotation (material + production). Paper issued is the actual stock value consumed via "Issue Materials".</p>
+{% endblock %}

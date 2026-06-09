@@ -19,7 +19,7 @@ of standard sales, invoicing and accounts-receivable.
 | **3** | **Work-Order / Job tracking** — convert quote → job card, production stages (pre-press → delivery), progress, due dates, priorities | ✅ Done |
 | **4** | **Core accounting** — Invoices (from quote/job/manual), Payments/Receipts, AR aging, Delivery Orders | ✅ Done |
 | **5** | **Inventory + Purchasing** — stock movements, Purchase Orders + goods receipt, Supplier Bills, AP aging, job material consumption | ✅ Done |
-| 6 | Reports + GL (sales, job profitability, statements) | ⏳ Next |
+| **6** | **Reports & Insight** — financial snapshot, sales summary, job profitability, stock valuation, customer statements | ✅ Done |
 
 ## Quick start
 
@@ -167,3 +167,18 @@ Closes the loop on materials and what you owe suppliers.
   manually; inline-editable lines, full/partial supplier **payments**, and
   status Unpaid → Partial → Paid (the AP mirror of customer AR).
 - **AP aging report** — open payables bucketed by days past due, per supplier.
+
+## Module 6 — Reports & Business Insight
+
+Turns the captured data into management decisions.
+
+- **Financial snapshot** — AR, AP, sales this month, purchases this month, and
+  stock value at a glance.
+- **Sales summary** — invoiced / paid / outstanding over a date range, broken
+  down by month and by customer.
+- **Job profitability** — revenue (actual invoice, or quoted) vs the estimated
+  cost snapshot vs actual paper issued, with margin and margin % per job — the
+  report that shows which jobs actually make money.
+- **Stock valuation** — on-hand inventory value at cost, grouped by category.
+- **Customer statements** — printable per-customer account statement with
+  invoices, payments and balance due.

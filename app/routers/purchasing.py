@@ -122,7 +122,7 @@ def consume_job_materials(jid: int, request: Request, db: Session = Depends(get_
             paper = db.get(StockItem, it.paper_id)
             if paper:
                 record_movement(db, paper, -it.total_sheets, "Job Usage",
-                                reference=job.number, notes=it.title)
+                                unit_cost=paper.cost_price, reference=job.number, notes=it.title)
                 issued += 1
     db.commit()
     if issued:

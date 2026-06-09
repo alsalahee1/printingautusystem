@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Reports{% endblock %}
+{% block heading %}<i class="bi bi-bar-chart-line me-2"></i>Reports &amp; Insight{% endblock %}
+{% block content %}
+<div class="row g-3 mb-4">
+  {% for k in kpis %}
+  <div class="col-sm-6 col-xl">
+    <a href="{{ k.url }}" class="text-decoration-none">
+      <div class="card shadow-sm h-100" style="border-left:4px solid var(--bs-{{ k.color }})">
+        <div class="card-body">
+          <div class="d-flex align-items-center mb-1"><i class="bi {{ k.icon }} text-{{ k.color }} me-2"></i>
+            <span class="text-muted small">{{ k.label }}</span></div>
+          <div class="h4 mb-0">{{ settings.currency }} {{ "%.2f"|format(k.value) }}</div>
+        </div>
+      </div>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="row g-3">
+  {% set cards = [
+    ("/reports/sales", "bi-graph-up-arrow", "Sales Summary", "Invoiced, paid and outstanding by month and by customer."),
+    ("/reports/profitability", "bi-cash-coin", "Job Profitability", "Revenue vs estimated cost per job — which jobs actually make money."),
+    ("/reports/stock-valuation", "bi-box-seam", "Stock Valuation", "Value of on-hand inventory by category at cost."),
+    ("/reports/statements", "bi-person-lines-fill", "Customer Statements", "Printable account statement and balance per customer.")
+  ] %}
+  {% for url, icon, title, desc in cards %}
+  <div class="col-md-6">
+    <a href="{{ url }}" class="text-decoration-none">
+      <div class="card shadow-sm h-100">
+        <div class="card-body d-flex align-items-start">
+          <i class="bi {{ icon }} fs-3 text-primary me-3"></i>
+          <div>
+            <div class="fw-semibold text-dark">{{ title }}</div>
+            <div class="text-muted small">{{ desc }}</div>
+          </div>
+        </div>
+      </div>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
