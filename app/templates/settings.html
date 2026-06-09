@@ -57,6 +57,26 @@
   <div class="row g-3 mt-1">
     <div class="col-12">
       <div class="card shadow-sm">
+        <div class="card-header bg-white fw-semibold"><i class="bi bi-file-earmark-check me-1"></i>e-Invoice (LHDN MyInvois)</div>
+        <div class="card-body">
+          <div class="row g-2">
+            <div class="col-md-3"><label class="form-label">Company TIN</label>
+              <input name="company_tin" class="form-control" value="{{ s.company_tin }}"></div>
+            <div class="col-md-3"><label class="form-label">Business Reg. No. (BRN)</label>
+              <input name="company_brn" class="form-control" value="{{ s.company_brn }}"></div>
+            <div class="col-md-3"><label class="form-label">MSIC code</label>
+              <input name="company_msic" class="form-control" value="{{ s.company_msic }}" placeholder="e.g. 18112"></div>
+            <div class="col-md-3"><label class="form-label">Default item class code</label>
+              <input name="einvoice_classification" class="form-control" value="{{ s.einvoice_classification }}"></div>
+            <div class="col-12"><label class="form-label">Business activity description</label>
+              <input name="company_activity" class="form-control" value="{{ s.company_activity }}" placeholder="e.g. Commercial printing"></div>
+          </div>
+          <p class="form-text mb-0">Used to build the MyInvois-aligned e-Invoice JSON (Invoice → "e-Invoice JSON"). Submitting to the MyInvois API requires IRBM credentials.</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-12">
+      <div class="card shadow-sm">
         <div class="card-header bg-white fw-semibold"><i class="bi bi-envelope me-1"></i>Email (SMTP) — for sending PDF quotes &amp; invoices</div>
         <div class="card-body">
           <div class="row g-2">

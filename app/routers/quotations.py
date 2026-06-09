@@ -453,6 +453,11 @@ async def save_settings(request: Request, db: Session = Depends(get_db)):
     if form.get("smtp_pass"):
         s.smtp_pass = form.get("smtp_pass")
     s.smtp_use_tls = form.get("smtp_use_tls") is not None
+    s.company_tin = form.get("company_tin") or ""
+    s.company_brn = form.get("company_brn") or ""
+    s.company_msic = form.get("company_msic") or ""
+    s.company_activity = form.get("company_activity") or ""
+    s.einvoice_classification = form.get("einvoice_classification") or "022"
     db.commit()
     flash(request, "Settings saved.", "success")
     return RedirectResponse("/settings", status_code=303)

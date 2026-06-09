@@ -8,11 +8,11 @@ Accounts-Receivable aging are derived from invoice totals minus payments.
 from datetime import date, timedelta
 
 from fastapi import APIRouter, Depends, Request
-from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from .. import pdf
+from .. import einvoice, pdf
 from ..database import get_db
 from ..mailer import send_email
 from ..models import (
@@ -257,6 +257,18 @@ async def invoice_email(iid: int, request: Request, db: Session = Depends(get_db
         attachment=data, attachment_name=f"{inv.number}.pdf")
     flash(request, msg, "success" if ok else "danger")
     return RedirectResponse(f"/invoices/{iid}", status_code=303)
+
+
+@router.get("/invoices/{iid}/einvoice")
+def invoice_einvoice(iid: int, request: Request, db: Session = Depends(get_db)):
+    inv = db.get(Invoice, iid)
+    if not inv:
+        return RedirectResponse("/invoices", status_code=303)
+    settings = get_settings(db)
+    return JSONResponse({
+        "warnings": einvoice.validation_warnings(inv, settings),
+        "document": einvoice.build_einvoice(inv, settings),
+    })
 
 
 @router.get("/delivery-orders/{did}/pdf")

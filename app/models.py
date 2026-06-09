@@ -25,6 +25,8 @@ class Customer(Base):
     address: Mapped[str] = mapped_column(Text, default="")
     city: Mapped[str] = mapped_column(String(80), default="")
     tax_no: Mapped[str] = mapped_column(String(40), default="")
+    tin: Mapped[str] = mapped_column(String(40), default="")        # LHDN Tax Identification No.
+    reg_no: Mapped[str] = mapped_column(String(40), default="")     # business/IC registration no.
     credit_limit: Mapped[float] = mapped_column(Float, default=0.0)
     payment_terms_days: Mapped[int] = mapped_column(Integer, default=30)
     notes: Mapped[str] = mapped_column(Text, default="")
@@ -196,6 +198,13 @@ class Settings(Base):
     smtp_pass: Mapped[str] = mapped_column(String(255), default="")
     smtp_from: Mapped[str] = mapped_column(String(120), default="")
     smtp_use_tls: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    # Malaysian e-Invoice (LHDN MyInvois) identity fields.
+    company_tin: Mapped[str] = mapped_column(String(40), default="")
+    company_brn: Mapped[str] = mapped_column(String(40), default="")     # business registration no.
+    company_msic: Mapped[str] = mapped_column(String(10), default="")    # MSIC industry code
+    company_activity: Mapped[str] = mapped_column(String(200), default="")
+    einvoice_classification: Mapped[str] = mapped_column(String(10), default="022")  # default item class code
 
 
 class Quotation(Base):

@@ -202,3 +202,18 @@ Turns the captured data into management decisions.
   Configure SMTP (host/port/from/credentials/TLS) under **Settings**; if it's
   left blank, email is disabled but PDF download still works. SMTP errors are
   reported back to the user, never crashing the request.
+
+## Module 9 — e-Invoice & SST (Malaysia / LHDN)
+
+- **Identity fields** — company TIN, BRN, MSIC code and business activity
+  (Settings); customer TIN and registration number (customer record).
+- **SST** — invoice tax % feeds the e-Invoice tax category (Sales Tax `01`
+  when charged, `06` not-applicable when zero).
+- **e-Invoice JSON** — each invoice exports a **MyInvois-aligned UBL JSON**
+  (`Invoice → e-Invoice`) with supplier/buyer parties, line items + commodity
+  classification, tax totals and monetary totals — ready to hand to a MyInvois
+  submitter. Pre-submission **warnings** flag missing TIN/MSIC.
+
+> The final transmit step to the IRBM **MyInvois API** (sign + submit) needs
+> IRBM credentials and is left as a documented integration point; PrintSys
+> prepares the compliant document.

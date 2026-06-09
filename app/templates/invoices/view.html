@@ -14,6 +14,7 @@
       <button class="btn btn-primary btn-sm w-100">Send invoice</button>
     </form>
   </div>
+  <a href="/invoices/{{ inv.id }}/einvoice" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-file-earmark-check me-1"></i>e-Invoice</a>
   <a href="/invoices/{{ inv.id }}/print" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-printer"></i></a>
   <a href="/invoices/{{ inv.id }}/edit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i></a>
   <form action="/invoices/{{ inv.id }}/cancel" method="post" class="d-inline">
