@@ -43,6 +43,18 @@ python3 -m app.seed          # optional: load sample data
 uvicorn app.main:app --reload
 ```
 
+Sign in with **admin / admin** on first run and change the password under *Users*.
+
+### Tests & deployment
+
+```bash
+pip install -r requirements-dev.txt
+pytest                       # isolated temp DB — does not touch your data
+```
+
+See **[DEPLOY.md](DEPLOY.md)** for running on a shop PC or production server
+(environment variables, PostgreSQL, gunicorn + systemd, backups).
+
 ## Tech stack
 
 - **FastAPI** + **Uvicorn** (Python web app, single command, no build step)
