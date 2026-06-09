@@ -9,6 +9,10 @@
         onsubmit="return confirm('Create a production job card from {{ q.number }}?')">
     <button class="btn btn-success btn-sm"><i class="bi bi-kanban me-1"></i>Convert to Job</button>
   </form>
+  <form action="/invoices/from-quotation/{{ q.id }}" method="post" class="d-inline"
+        onsubmit="return confirm('Create an invoice from {{ q.number }}?')">
+    <button class="btn btn-outline-success btn-sm"><i class="bi bi-receipt me-1"></i>Invoice</button>
+  </form>
   {% endif %}
   <a href="/quotations/{{ q.id }}/print" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-printer me-1"></i>Print</a>
   <a href="/quotations/{{ q.id }}/edit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i></a>

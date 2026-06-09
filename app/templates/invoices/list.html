@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Invoices{% endblock %}
+{% block heading %}<i class="bi bi-receipt me-2"></i>Invoices{% endblock %}
+{% block actions %}
+  <a href="/invoices/new" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>New Invoice</a>
+{% endblock %}
+{% block content %}
+<div class="d-flex gap-3 mb-3">
+  <div class="card stat-card shadow-sm flex-grow-1">
+    <div class="card-body py-2">
+      <div class="text-muted small">Total outstanding (AR)</div>
+      <div class="h4 mb-0 text-danger">{{ settings.currency }} {{ "%.2f"|format(total_out) }}</div>
+    </div>
+  </div>
+</div>
+
+<ul class="nav nav-pills mb-3 small">
+  <li class="nav-item"><a class="nav-link {{ 'active' if not active_status else '' }}" href="/invoices">All</a></li>
+  {% for s in ["Unpaid","Partial","Paid","Cancelled"] %}
+  <li class="nav-item"><a class="nav-link {{ 'active' if active_status == s else '' }}" href="/invoices?status={{ s }}">{{ s }}</a></li>
+  {% endfor %}
+</ul>
+
+<div class="card shadow-sm">
+  <div class="card-body p-0">
+    {% if rows %}
+    <table class="table table-hover align-middle mb-0">
+      <thead><tr>
+        <th class="ps-3">Invoice #</th><th>Date</th><th>Due</th><th>Customer</th><th>Status</th>
+        <th class="text-end">Total</th><th class="text-end">Paid</th><th class="text-end pe-3">Balance</th><th></th>
+      </tr></thead>
+      <tbody>
+      {% for i in rows %}
+        <tr>
+          <td class="ps-3"><a href="/invoices/{{ i.id }}" class="fw-semibold text-decoration-none">{{ i.number }}</a></td>
+          <td>{{ i.date }}</td>
+          <td class="{{ 'text-danger fw-semibold' if i.is_overdue else '' }}">{{ i.due_date or '—' }}</td>
+          <td>{{ i.customer.name }}</td>
+          <td><span class="badge bg-{{ i.status_color }}">{{ i.status }}</span></td>
+          <td class="text-end">{{ "%.2f"|format(i.total) }}</td>
+          <td class="text-end text-success">{{ "%.2f"|format(i.paid_amount) }}</td>
+          <td class="text-end pe-3 fw-semibold {{ 'text-danger' if i.balance > 0 else '' }}">{{ "%.2f"|format(i.balance) }}</td>
+          <td class="text-end pe-3"><a href="/invoices/{{ i.id }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i></a></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="text-center text-muted py-5">
+      <i class="bi bi-receipt fs-1 d-block mb-2"></i>
+      No invoices{{ ' (' ~ active_status ~ ')' if active_status else '' }}.
+      Raise one from a <a href="/quotations">quotation</a>, a <a href="/jobs">job</a>, or <a href="/invoices/new">manually</a>.
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -7,6 +7,14 @@
 {% endblock %}
 {% block actions %}
   <a href="/jobs/{{ job.id }}/items/new" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Add Item</a>
+  <form action="/invoices/from-job/{{ job.id }}" method="post" class="d-inline"
+        onsubmit="return confirm('Create an invoice from {{ job.number }}?')">
+    <button class="btn btn-outline-success btn-sm"><i class="bi bi-receipt me-1"></i>Invoice</button>
+  </form>
+  <form action="/delivery-orders/from-job/{{ job.id }}" method="post" class="d-inline"
+        onsubmit="return confirm('Create a delivery order from {{ job.number }}?')">
+    <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-box-arrow-right me-1"></i>Delivery Order</button>
+  </form>
   <a href="/jobs/{{ job.id }}/edit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i></a>
 {% endblock %}
 {% block content %}

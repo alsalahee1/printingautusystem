@@ -17,9 +17,8 @@ of standard sales, invoicing and accounts-receivable.
 | **1** | **Foundation + Master Data** — Customers, Suppliers, Stock & Paper (GSM/sheet size/cost), Finishing types, Machines (rates) | ✅ Done |
 | **2** | **Job Estimation + Quotation** — imposition, plate/make-ready/press/paper/ink/finishing costing, live price preview, printable quotes | ✅ Done |
 | **3** | **Work-Order / Job tracking** — convert quote → job card, production stages (pre-press → delivery), progress, due dates, priorities | ✅ Done |
-| 4 | Core accounting (Sales Order → Delivery Order → Invoice → Receipt + AR) | ⏳ Next |
-| 4 | Core accounting (Sales Order → Delivery Order → Invoice → Receipt + AR) | ⏳ Planned |
-| 5 | Inventory + Purchasing (stock movements, AP) | ⏳ Planned |
+| **4** | **Core accounting** — Invoices (from quote/job/manual), Payments/Receipts, AR aging, Delivery Orders | ✅ Done |
+| 5 | Inventory + Purchasing (stock movements, AP) | ⏳ Next |
 | 6 | Reports + GL (sales, AR aging, job profitability) | ⏳ Planned |
 
 ## Quick start
@@ -131,3 +130,25 @@ Turns sales into production tracking.
   when there's no originating quotation.
 - The **dashboard** now surfaces active jobs, jobs due within 3 days, and open
   quotations alongside low-stock alerts.
+
+## Module 4 — Core Accounting
+
+Where the money gets tracked.
+
+- **Invoices** — raise from an approved **quotation** (pricing carried over),
+  from a **job** (pricing pulled from its originating quote), or **manually**.
+  Line items are **inline-editable** (description, qty, unit price); subtotal,
+  tax and total recompute automatically.
+- **Payments / Receipts** — record full or **partial** payments against an
+  invoice (cash, bank transfer, cheque, card…). Invoice status derives from the
+  balance: **Unpaid → Partial → Paid**, plus Cancel/Reopen.
+- **Accounts Receivable** — an **aging report** bucketing every open balance by
+  days past due (Current / 1–30 / 31–60 / 61–90 / 90+), grouped per customer
+  with column totals.
+- **Delivery Orders** — generate a DO from a job (carrying the items) or create
+  one manually; printable with sign-off lines. The sales chain is now
+  **Quotation → Job → Delivery Order → Invoice → Receipt**.
+- **Printable** invoices and delivery orders with your company header.
+
+> Scope note: a separate *Sales Order* document is intentionally omitted — the
+> Quotation → Job flow already covers the pre-invoice stage for a print shop.

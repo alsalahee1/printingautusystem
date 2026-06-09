@@ -392,3 +392,150 @@ class JobStage(Base):
     note: Mapped[str] = mapped_column(String(200), default="")
 
     job: Mapped["Job"] = relationship(back_populates="stages")
+
+
+# ---------------------------------------------------------------------------
+# Module 4: Accounting — Invoices, Payments (Receipts), Delivery Orders, AR
+# ---------------------------------------------------------------------------
+
+PAYMENT_METHODS = ["Cash", "Bank Transfer", "Cheque", "Card", "Online", "Other"]
+INVOICE_STATUS_COLORS = {
+    "Unpaid": "danger", "Partial": "warning", "Paid": "success", "Cancelled": "secondary",
+}
+
+
+class Invoice(Base):
+    __tablename__ = "invoices"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    number: Mapped[str] = mapped_column(String(20), unique=True, index=True)
+    date: Mapped[date] = mapped_column(Date, default=date.today)
+    due_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    customer_id: Mapped[int] = mapped_column(ForeignKey("customers.id"))
+    job_id: Mapped[int | None] = mapped_column(ForeignKey("jobs.id"), nullable=True)
+    quotation_id: Mapped[int | None] = mapped_column(ForeignKey("quotations.id"), nullable=True)
+    tax_pct: Mapped[float] = mapped_column(Float, default=0.0)
+    cancelled: Mapped[bool] = mapped_column(Boolean, default=False)
+    notes: Mapped[str] = mapped_column(Text, default="")
+    terms: Mapped[str] = mapped_column(Text, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    customer: Mapped["Customer"] = relationship()
+    job: Mapped["Job | None"] = relationship()
+    items: Mapped[list["InvoiceItem"]] = relationship(
+        back_populates="invoice", cascade="all, delete-orphan", order_by="InvoiceItem.line_no"
+    )
+    payments: Mapped[list["Payment"]] = relationship(
+        back_populates="invoice", cascade="all, delete-orphan", order_by="Payment.date"
+    )
+
+    @property
+    def subtotal(self) -> float:
+        return round(sum(i.amount for i in self.items), 2)
+
+    @property
+    def tax_amount(self) -> float:
+        return round(self.subtotal * self.tax_pct / 100, 2)
+
+    @property
+    def total(self) -> float:
+        return round(self.subtotal + self.tax_amount, 2)
+
+    @property
+    def paid_amount(self) -> float:
+        return round(sum(p.amount for p in self.payments), 2)
+
+    @property
+    def balance(self) -> float:
+        return round(self.total - self.paid_amount, 2)
+
+    @property
+    def status(self) -> str:
+        if self.cancelled:
+            return "Cancelled"
+        if self.balance <= 0 and self.total > 0:
+            return "Paid"
+        if self.paid_amount > 0:
+            return "Partial"
+        return "Unpaid"
+
+    @property
+    def status_color(self) -> str:
+        return INVOICE_STATUS_COLORS.get(self.status, "secondary")
+
+    @property
+    def is_overdue(self) -> bool:
+        return bool(
+            self.due_date and self.due_date < date.today()
+            and self.balance > 0 and not self.cancelled
+        )
+
+    @property
+    def days_overdue(self) -> int:
+        ref = self.due_date or self.date
+        return max((date.today() - ref).days, 0) if self.balance > 0 else 0
+
+
+class InvoiceItem(Base):
+    __tablename__ = "invoice_items"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    invoice_id: Mapped[int] = mapped_column(ForeignKey("invoices.id"))
+    line_no: Mapped[int] = mapped_column(Integer, default=1)
+    description: Mapped[str] = mapped_column(Text, default="")
+    quantity: Mapped[float] = mapped_column(Float, default=1.0)
+    unit_price: Mapped[float] = mapped_column(Float, default=0.0)
+
+    invoice: Mapped["Invoice"] = relationship(back_populates="items")
+
+    @property
+    def amount(self) -> float:
+        return round(self.quantity * self.unit_price, 2)
+
+
+class Payment(Base):
+    """A receipt of money against an invoice (partial payments allowed)."""
+    __tablename__ = "payments"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    invoice_id: Mapped[int] = mapped_column(ForeignKey("invoices.id"))
+    date: Mapped[date] = mapped_column(Date, default=date.today)
+    amount: Mapped[float] = mapped_column(Float, default=0.0)
+    method: Mapped[str] = mapped_column(String(20), default="Cash")
+    reference: Mapped[str] = mapped_column(String(80), default="")
+    notes: Mapped[str] = mapped_column(String(200), default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    invoice: Mapped["Invoice"] = relationship(back_populates="payments")
+
+
+class DeliveryOrder(Base):
+    __tablename__ = "delivery_orders"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    number: Mapped[str] = mapped_column(String(20), unique=True, index=True)
+    date: Mapped[date] = mapped_column(Date, default=date.today)
+    customer_id: Mapped[int] = mapped_column(ForeignKey("customers.id"))
+    job_id: Mapped[int | None] = mapped_column(ForeignKey("jobs.id"), nullable=True)
+    delivered_to: Mapped[str] = mapped_column(Text, default="")
+    notes: Mapped[str] = mapped_column(Text, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    customer: Mapped["Customer"] = relationship()
+    job: Mapped["Job | None"] = relationship()
+    items: Mapped[list["DeliveryOrderItem"]] = relationship(
+        back_populates="delivery_order", cascade="all, delete-orphan",
+        order_by="DeliveryOrderItem.line_no",
+    )
+
+
+class DeliveryOrderItem(Base):
+    __tablename__ = "delivery_order_items"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    do_id: Mapped[int] = mapped_column(ForeignKey("delivery_orders.id"))
+    line_no: Mapped[int] = mapped_column(Integer, default=1)
+    description: Mapped[str] = mapped_column(Text, default="")
+    quantity: Mapped[float] = mapped_column(Float, default=1.0)
+
+    delivery_order: Mapped["DeliveryOrder"] = relationship(back_populates="items")

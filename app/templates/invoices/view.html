@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}{{ inv.number }}{% endblock %}
+{% block heading %}<i class="bi bi-receipt me-2"></i>{{ inv.number }}
+  <span class="badge bg-{{ inv.status_color }} ms-2">{{ inv.status }}</span>
+  {% if inv.is_overdue %}<span class="badge bg-danger">{{ inv.days_overdue }}d overdue</span>{% endif %}
+{% endblock %}
+{% block actions %}
+  <a href="/invoices/{{ inv.id }}/print" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-printer me-1"></i>Print</a>
+  <a href="/invoices/{{ inv.id }}/edit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i></a>
+  <form action="/invoices/{{ inv.id }}/cancel" method="post" class="d-inline">
+    <button class="btn btn-outline-warning btn-sm">{{ "Reopen" if inv.cancelled else "Cancel" }}</button>
+  </form>
+{% endblock %}
+{% block content %}
+<div class="row g-3 mb-3">
+  <div class="col-md-8">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <div class="row">
+        <div class="col-sm-6">
+          <div class="text-muted small">Bill to</div>
+          <div class="fw-semibold">{{ inv.customer.name }}</div>
+          {% if inv.customer.company %}<div>{{ inv.customer.company }}</div>{% endif %}
+        </div>
+        <div class="col-sm-3"><div class="text-muted small">Date</div><div>{{ inv.date }}</div></div>
+        <div class="col-sm-3"><div class="text-muted small">Due</div>
+          <div class="{{ 'text-danger fw-semibold' if inv.is_overdue else '' }}">{{ inv.due_date or '—' }}</div></div>
+      </div>
+      {% if inv.job %}<div class="small mt-2 text-muted">Job <a href="/jobs/{{ inv.job_id }}">{{ inv.job.number }}</a>{% endif %}
+      {% if inv.quotation_id %} · Quotation <a href="/quotations/{{ inv.quotation_id }}">view</a>{% endif %}{% if inv.job %}</div>{% endif %}
+    </div></div>
+  </div>
+  <div class="col-md-4">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <div class="d-flex justify-content-between"><span class="text-muted">Subtotal</span><span>{{ settings.currency }} {{ "%.2f"|format(inv.subtotal) }}</span></div>
+      <div class="d-flex justify-content-between"><span class="text-muted">Tax ({{ inv.tax_pct }}%)</span><span>{{ settings.currency }} {{ "%.2f"|format(inv.tax_amount) }}</span></div>
+      <div class="d-flex justify-content-between fw-semibold"><span>Total</span><span>{{ settings.currency }} {{ "%.2f"|format(inv.total) }}</span></div>
+      <div class="d-flex justify-content-between text-success"><span>Paid</span><span>− {{ "%.2f"|format(inv.paid_amount) }}</span></div>
+      <hr class="my-2">
+      <div class="d-flex justify-content-between fs-5 fw-bold"><span>Balance</span>
+        <span class="{{ 'text-danger' if inv.balance > 0 else 'text-success' }}">{{ settings.currency }} {{ "%.2f"|format(inv.balance) }}</span></div>
+    </div></div>
+  </div>
+</div>
+
+<!-- Line items (inline editable). Forms live outside the table; inputs link to
+     them via the HTML5 form="" attribute so the markup stays valid. -->
+{% for it in inv.items %}
+  <form id="edit{{ it.id }}" action="/invoices/{{ inv.id }}/items/{{ it.id }}/edit" method="post"></form>
+  <form id="del{{ it.id }}" action="/invoices/{{ inv.id }}/items/{{ it.id }}/delete" method="post"></form>
+{% endfor %}
+<form id="additem" action="/invoices/{{ inv.id }}/items/add" method="post"></form>
+<div class="card shadow-sm mb-3">
+  <div class="card-header bg-white fw-semibold">Line items</div>
+  <div class="card-body p-0">
+    <table class="table align-middle mb-0">
+      <thead><tr><th class="ps-3" style="width:45px">#</th><th>Description</th>
+        <th class="text-end" style="width:110px">Qty</th><th class="text-end" style="width:130px">Unit Price</th>
+        <th class="text-end" style="width:120px">Amount</th><th style="width:90px"></th></tr></thead>
+      <tbody>
+      {% for it in inv.items %}
+        <tr>
+          <td class="ps-3">{{ it.line_no }}</td>
+          <td><input form="edit{{ it.id }}" name="description" class="form-control form-control-sm" value="{{ it.description }}"></td>
+          <td><input form="edit{{ it.id }}" name="quantity" type="number" step="any" class="form-control form-control-sm text-end" value="{{ it.quantity }}"></td>
+          <td><input form="edit{{ it.id }}" name="unit_price" type="number" step="any" class="form-control form-control-sm text-end" value="{{ it.unit_price }}"></td>
+          <td class="text-end fw-semibold">{{ "%.2f"|format(it.amount) }}</td>
+          <td class="text-end pe-3">
+            <button form="edit{{ it.id }}" class="btn btn-sm btn-outline-primary" title="Save"><i class="bi bi-check-lg"></i></button>
+            <button form="del{{ it.id }}" class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></button>
+          </td>
+        </tr>
+      {% endfor %}
+        <tr class="table-light">
+          <td class="ps-3 text-muted">+</td>
+          <td><input form="additem" name="description" class="form-control form-control-sm" placeholder="New line description" required></td>
+          <td><input form="additem" name="quantity" type="number" step="any" class="form-control form-control-sm text-end" value="1"></td>
+          <td><input form="additem" name="unit_price" type="number" step="any" class="form-control form-control-sm text-end" value="0"></td>
+          <td></td>
+          <td class="text-end pe-3"><button form="additem" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i></button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Payments -->
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white fw-semibold">Payments / Receipts</div>
+      <div class="card-body p-0">
+        {% if inv.payments %}
+        <table class="table table-sm mb-0">
+          <thead><tr><th class="ps-3">Date</th><th>Method</th><th>Reference</th><th class="text-end">Amount</th><th></th></tr></thead>
+          <tbody>
+          {% for p in inv.payments %}
+            <tr>
+              <td class="ps-3">{{ p.date }}</td><td>{{ p.method }}</td><td class="small text-muted">{{ p.reference or '—' }}</td>
+              <td class="text-end fw-semibold text-success">{{ "%.2f"|format(p.amount) }}</td>
+              <td class="text-end pe-3">
+                <form action="/invoices/{{ inv.id }}/payments/{{ p.id }}/delete" method="post" onsubmit="return confirm('Remove payment?')">
+                  <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        {% else %}<p class="text-muted text-center py-3 mb-0">No payments recorded.</p>{% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white fw-semibold">Record a payment</div>
+      <div class="card-body">
+        <form action="/invoices/{{ inv.id }}/payments/add" method="post">
+          <div class="row g-2">
+            <div class="col-6"><label class="form-label small">Date</label>
+              <input type="date" name="date" class="form-control form-control-sm" value="{{ today }}"></div>
+            <div class="col-6"><label class="form-label small">Amount</label>
+              <input type="number" step="any" name="amount" class="form-control form-control-sm" value="{{ '%.2f'|format(inv.balance) if inv.balance > 0 else '' }}" required></div>
+            <div class="col-6"><label class="form-label small">Method</label>
+              <select name="method" class="form-select form-select-sm">
+                {% for m in methods %}<option value="{{ m }}">{{ m }}</option>{% endfor %}
+              </select></div>
+            <div class="col-6"><label class="form-label small">Reference</label>
+              <input name="reference" class="form-control form-control-sm" placeholder="Cheque/Txn no."></div>
+          </div>
+          <button class="btn btn-success btn-sm w-100 mt-3" {{ 'disabled' if inv.cancelled else '' }}>
+            <i class="bi bi-cash me-1"></i>Record Payment</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mt-3">
+  <form action="/invoices/{{ inv.id }}/delete" method="post" onsubmit="return confirm('Delete invoice {{ inv.number }}?')">
+    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash me-1"></i>Delete invoice</button>
+  </form>
+</div>
+{% endblock %}

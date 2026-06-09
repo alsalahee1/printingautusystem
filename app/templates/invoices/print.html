@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ inv.number }} — {{ settings.company_name }}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: #fff; }
+    @media print { .no-print { display: none; } }
+    .doc { max-width: 800px; margin: 0 auto; padding: 24px; }
+  </style>
+</head>
+<body>
+<div class="doc">
+  <div class="no-print text-end mb-2">
+    <button onclick="window.print()" class="btn btn-primary btn-sm">Print / Save PDF</button>
+    <a href="/invoices/{{ inv.id }}" class="btn btn-outline-secondary btn-sm">Back</a>
+  </div>
+
+  <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-3">
+    <div>
+      <h3 class="mb-0">{{ settings.company_name }}</h3>
+      <div class="small text-muted" style="white-space: pre-line">{{ settings.company_address }}</div>
+      <div class="small text-muted">
+        {% if settings.company_phone %}Tel: {{ settings.company_phone }}{% endif %}
+        {% if settings.company_email %} · {{ settings.company_email }}{% endif %}
+      </div>
+      {% if settings.company_reg_no %}<div class="small text-muted">Reg: {{ settings.company_reg_no }}{% if settings.company_tax_no %} · SST: {{ settings.company_tax_no }}{% endif %}</div>{% endif %}
+    </div>
+    <div class="text-end">
+      <h2 class="text-uppercase text-muted">Invoice</h2>
+      <div><b>{{ inv.number }}</b></div>
+      <div class="small">Date: {{ inv.date }}</div>
+      {% if inv.due_date %}<div class="small">Due: {{ inv.due_date }}</div>{% endif %}
+      <div class="small">Status: {{ inv.status }}</div>
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <div class="text-muted small text-uppercase">Bill to</div>
+    <div class="fw-semibold">{{ inv.customer.name }}</div>
+    {% if inv.customer.company %}<div>{{ inv.customer.company }}</div>{% endif %}
+    <div class="small" style="white-space: pre-line">{{ inv.customer.address }}</div>
+    {% if inv.customer.tax_no %}<div class="small">SST: {{ inv.customer.tax_no }}</div>{% endif %}
+  </div>
+
+  <table class="table table-sm">
+    <thead class="table-light"><tr>
+      <th>#</th><th>Description</th><th class="text-end">Qty</th><th class="text-end">Unit Price</th><th class="text-end">Amount</th>
+    </tr></thead>
+    <tbody>
+      {% for it in inv.items %}
+      <tr><td>{{ it.line_no }}</td><td>{{ it.description }}</td>
+        <td class="text-end">{{ it.quantity|round(2) }}</td>
+        <td class="text-end">{{ "%.2f"|format(it.unit_price) }}</td>
+        <td class="text-end">{{ settings.currency }} {{ "%.2f"|format(it.amount) }}</td></tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr><td colspan="4" class="text-end">Subtotal</td><td class="text-end">{{ settings.currency }} {{ "%.2f"|format(inv.subtotal) }}</td></tr>
+      <tr><td colspan="4" class="text-end">Tax ({{ inv.tax_pct }}%)</td><td class="text-end">{{ settings.currency }} {{ "%.2f"|format(inv.tax_amount) }}</td></tr>
+      <tr class="fw-bold"><td colspan="4" class="text-end">Total</td><td class="text-end">{{ settings.currency }} {{ "%.2f"|format(inv.total) }}</td></tr>
+      {% if inv.paid_amount %}
+      <tr><td colspan="4" class="text-end">Paid</td><td class="text-end">− {{ "%.2f"|format(inv.paid_amount) }}</td></tr>
+      <tr class="fw-bold"><td colspan="4" class="text-end">Balance Due</td><td class="text-end">{{ settings.currency }} {{ "%.2f"|format(inv.balance) }}</td></tr>
+      {% endif %}
+    </tfoot>
+  </table>
+
+  {% if inv.notes %}<div class="mb-2"><b>Notes:</b> {{ inv.notes }}</div>{% endif %}
+  {% if inv.terms %}<div class="small text-muted border-top pt-2" style="white-space: pre-line">{{ inv.terms }}</div>{% endif %}
+</div>
+</body>
+</html>

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Accounts Receivable{% endblock %}
+{% block heading %}<i class="bi bi-cash-coin me-2"></i>Accounts Receivable — Aging{% endblock %}
+{% block content %}
+<div class="card shadow-sm mb-3">
+  <div class="card-body d-flex justify-content-between align-items-center">
+    <span class="text-muted">Total outstanding</span>
+    <span class="h3 mb-0 text-danger">{{ settings.currency }} {{ "%.2f"|format(grand) }}</span>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body p-0">
+    {% if customer_rows %}
+    <table class="table align-middle mb-0">
+      <thead><tr>
+        <th class="ps-3">Customer</th>
+        {% for b in buckets %}<th class="text-end">{{ b }}</th>{% endfor %}
+        <th class="text-end pe-3">Total</th>
+      </tr></thead>
+      <tbody>
+      {% for r in customer_rows %}
+        <tr>
+          <td class="ps-3 fw-semibold">{{ r.customer.name }}
+            {% if r.customer.company %}<div class="small text-muted">{{ r.customer.company }}</div>{% endif %}</td>
+          {% for b in buckets %}
+            <td class="text-end {{ 'text-danger' if b in ['61–90','90+'] and r.buckets[b] > 0 else '' }}">
+              {{ "%.2f"|format(r.buckets[b]) if r.buckets[b] else '—' }}</td>
+          {% endfor %}
+          <td class="text-end pe-3 fw-bold">{{ "%.2f"|format(r.total) }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+      <tfoot class="table-light">
+        <tr class="fw-bold">
+          <td class="ps-3">Total</td>
+          {% for b in buckets %}<td class="text-end">{{ "%.2f"|format(totals[b]) }}</td>{% endfor %}
+          <td class="text-end pe-3">{{ "%.2f"|format(grand) }}</td>
+        </tr>
+      </tfoot>
+    </table>
+    {% else %}
+    <div class="text-center text-muted py-5">
+      <i class="bi bi-emoji-smile fs-1 d-block mb-2"></i>
+      No outstanding receivables — everything's paid up.
+    </div>
+    {% endif %}
+  </div>
+</div>
+<p class="text-muted small mt-2">Aging buckets are days past due date (or invoice date if no due date is set).</p>
+{% endblock %}
