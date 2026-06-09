@@ -21,12 +21,15 @@ from app.database import Base, engine  # noqa: E402
 from app.main import _seed_admin, app  # noqa: E402
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(autouse=True)
 def _database():
+    """Fresh, isolated database for every test (so tests never leak state)."""
+    Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     _seed_admin()
     seed_module.seed()
     yield
+    Base.metadata.drop_all(bind=engine)
 
 
 @pytest.fixture

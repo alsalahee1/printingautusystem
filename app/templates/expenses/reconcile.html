@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Reconcile {{ acc.name }}{% endblock %}
+{% block heading %}<i class="bi bi-check2-square me-2"></i>Reconcile — {{ acc.code }} {{ acc.name }}{% endblock %}
+{% block actions %}<a href="/reconcile" class="btn btn-outline-secondary btn-sm">All accounts</a>{% endblock %}
+{% block content %}
+<div class="row g-3 mb-3">
+  <div class="col-md-8">
+    <form method="get" class="card shadow-sm h-100"><div class="card-body d-flex align-items-end gap-3">
+      <div><label class="form-label small mb-0">Statement closing balance</label>
+        <input type="number" step="any" name="statement" value="{{ statement or '' }}" class="form-control form-control-sm"></div>
+      <button class="btn btn-primary btn-sm">Update</button>
+      <div class="ms-auto small text-end text-muted">Tick each transaction that appears on your bank statement.</div>
+    </div></form>
+  </div>
+  <div class="col-md-4">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <div class="d-flex justify-content-between"><span class="text-muted">Book balance</span><span>{{ settings.currency }} {{ "%.2f"|format(book) }}</span></div>
+      <div class="d-flex justify-content-between"><span class="text-muted">Cleared</span><span>{{ "%.2f"|format(cleared) }}</span></div>
+      <div class="d-flex justify-content-between"><span class="text-muted">Uncleared</span><span>{{ "%.2f"|format(uncleared) }}</span></div>
+      <hr class="my-2">
+      <div class="d-flex justify-content-between fw-bold">
+        <span>Difference</span>
+        <span class="{{ 'text-success' if difference == 0 else 'text-danger' }}">{{ settings.currency }} {{ "%.2f"|format(difference) }}</span>
+      </div>
+      {% if statement and difference == 0 %}<p class="text-success small mb-0 mt-1">Reconciled ✓ (cleared = statement)</p>{% endif %}
+    </div></div>
+  </div>
+</div>
+
+<div class="card shadow-sm"><div class="card-body p-0">
+  {% if rows %}
+  <table class="table table-sm align-middle mb-0">
+    <thead><tr><th class="ps-3" style="width:60px">Cleared</th><th>Date</th><th>Source</th><th>Reference</th><th class="text-end pe-3">Amount</th></tr></thead>
+    <tbody>
+    {% for r in rows %}
+      <tr class="{{ 'table-success' if r.cleared else '' }}">
+        <td class="ps-3">
+          <form action="/reconcile/{{ acc.id }}/toggle" method="post" class="m-0">
+            <input type="hidden" name="key" value="{{ r.p.key }}">
+            <input type="hidden" name="statement" value="{{ statement or '' }}">
+            <input type="checkbox" class="form-check-input" onchange="this.form.submit()" {{ 'checked' if r.cleared else '' }}>
+          </form>
+        </td>
+        <td>{{ r.p.date }}</td>
+        <td><span class="badge bg-light text-dark">{{ r.p.source }}</span></td>
+        <td class="small text-muted">{{ r.p.ref }}</td>
+        <td class="text-end pe-3 fw-semibold {{ 'text-success' if r.signed >= 0 else 'text-danger' }}">{{ "%+.2f"|format(r.signed) }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="text-muted text-center py-4 mb-0">No transactions on this account yet.</p>{% endif %}
+</div></div>
+{% endblock %}

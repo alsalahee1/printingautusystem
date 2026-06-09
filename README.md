@@ -25,6 +25,7 @@ of standard sales, invoicing and accounts-receivable.
 | **9** | **e-Invoice & SST** — LHDN MyInvois-aligned JSON export, TIN/BRN/MSIC fields | ✅ Done |
 | **10** | **CSV Import** — bulk-load customers & stock from AutoCount exports, upsert by code | ✅ Done |
 | **11** | **General Ledger** — chart of accounts, auto-postings from documents, manual journals, Trial Balance / P&L / Balance Sheet | ✅ Done |
+| **12** | **Expenses & Bank Reconciliation** — quick expense entry (auto-posted to GL), reconcile cash/bank accounts against statements | ✅ Done |
 
 ## Quick start
 
@@ -262,3 +263,13 @@ Full bookkeeping on top of the operational data.
 - **Financial statements** — **Trial Balance**, **Profit & Loss** and
   **Balance Sheet** over any date range, plus drill-down **account ledgers**
   with running balances.
+
+## Module 12 — Expenses & Bank Reconciliation
+
+- **Expenses** — record a direct expense (date, payee, category, paid-from
+  cash/bank account, amount, SST). It auto-posts to the GL (Dr expense + SST
+  input, Cr cash/bank), flowing straight into the P&L — no manual journal.
+- **Bank reconciliation** — pick a cash/bank account, enter the statement
+  closing balance, and tick the transactions that have cleared. The worksheet
+  shows book vs cleared vs statement and the remaining difference; cleared
+  marks are saved so you can reconcile over multiple sessions.

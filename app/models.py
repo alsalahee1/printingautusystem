@@ -820,3 +820,50 @@ class JournalLine(Base):
 
     entry: Mapped["JournalEntry"] = relationship(back_populates="lines")
     account: Mapped["Account"] = relationship()
+
+
+# ---------------------------------------------------------------------------
+# Module 12: Expenses & Bank Reconciliation
+# ---------------------------------------------------------------------------
+
+class Expense(Base):
+    """A direct expense payment: Dr expense (+ SST input), Cr cash/bank.
+
+    Posts to the General Ledger automatically (see app.gl), like invoices and
+    bills, so it flows into the P&L and account ledgers without manual journals.
+    """
+    __tablename__ = "expenses"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    number: Mapped[str] = mapped_column(String(20), unique=True, index=True)
+    date: Mapped[date] = mapped_column(Date, default=date.today)
+    paid_from_account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"))
+    expense_account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"))
+    payee: Mapped[str] = mapped_column(String(150), default="")
+    description: Mapped[str] = mapped_column(Text, default="")
+    amount: Mapped[float] = mapped_column(Float, default=0.0)     # net expense
+    tax_pct: Mapped[float] = mapped_column(Float, default=0.0)
+    reference: Mapped[str] = mapped_column(String(80), default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    paid_from: Mapped["Account"] = relationship(foreign_keys=[paid_from_account_id])
+    expense_account: Mapped["Account"] = relationship(foreign_keys=[expense_account_id])
+
+    @property
+    def tax_amount(self) -> float:
+        return round(self.amount * self.tax_pct / 100, 2)
+
+    @property
+    def total(self) -> float:
+        return round(self.amount + self.tax_amount, 2)
+
+
+class ReconciledTxn(Base):
+    """Marks a single ledger posting (by stable key) as cleared on a bank/cash
+    account's reconciliation. Posting keys are deterministic (see app.gl)."""
+    __tablename__ = "reconciled_txns"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"), index=True)
+    txn_key: Mapped[str] = mapped_column(String(200), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

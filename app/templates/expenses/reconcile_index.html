@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Bank Reconciliation{% endblock %}
+{% block heading %}<i class="bi bi-check2-square me-2"></i>Bank Reconciliation{% endblock %}
+{% block content %}
+<div class="card shadow-sm"><div class="card-body">
+  <p class="text-muted">Choose a cash or bank account to reconcile against its statement.</p>
+  <div class="list-group">
+    {% for a in accounts %}
+      <a href="/reconcile/{{ a.id }}" class="list-group-item list-group-item-action d-flex justify-content-between">
+        <span><i class="bi bi-bank me-2"></i>{{ a.code }} — {{ a.name }}</span>
+        <i class="bi bi-chevron-right"></i>
+      </a>
+    {% endfor %}
+  </div>
+</div></div>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}New Expense{% endblock %}
+{% block heading %}<i class="bi bi-wallet2 me-2"></i>New Expense{% endblock %}
+{% block content %}
+<form method="post" action="/expenses/new" class="card shadow-sm">
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-md-3"><label class="form-label">Date</label>
+        <input type="date" name="date" class="form-control" value="{{ today }}"></div>
+      <div class="col-md-5"><label class="form-label">Payee</label>
+        <input name="payee" class="form-control" placeholder="Who was paid"></div>
+      <div class="col-md-4"><label class="form-label">Reference</label>
+        <input name="reference" class="form-control" placeholder="Receipt / cheque no."></div>
+      <div class="col-md-6 required"><label class="form-label">Expense category</label>
+        <select name="expense_account_id" class="form-select" required>
+          <option value="">— select expense account —</option>
+          {% for a in categories %}<option value="{{ a.id }}">{{ a.code }} — {{ a.name }}</option>{% endfor %}
+        </select></div>
+      <div class="col-md-6 required"><label class="form-label">Paid from</label>
+        <select name="paid_from_account_id" class="form-select" required>
+          <option value="">— cash / bank account —</option>
+          {% for a in paid_from %}<option value="{{ a.id }}">{{ a.code }} — {{ a.name }}</option>{% endfor %}
+        </select></div>
+      <div class="col-md-3 required"><label class="form-label">Amount (net)</label>
+        <input type="number" step="any" name="amount" class="form-control" required></div>
+      <div class="col-md-3"><label class="form-label">Tax / SST %</label>
+        <input type="number" step="any" name="tax_pct" class="form-control" value="0"></div>
+      <div class="col-md-6"><label class="form-label">Description</label>
+        <input name="description" class="form-control"></div>
+    </div>
+    <p class="form-text mt-2">Posts: <b>Dr</b> expense category (+ SST input tax) and <b>Cr</b> the cash/bank account.</p>
+  </div>
+  <div class="card-footer d-flex justify-content-between">
+    <a href="/expenses" class="btn btn-outline-secondary">Cancel</a>
+    <button class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Record Expense</button>
+  </div>
+</form>
+{% endblock %}

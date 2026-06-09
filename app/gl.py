@@ -23,6 +23,7 @@ from sqlalchemy.orm import Session
 
 from .models import (
     Account,
+    Expense,
     Invoice,
     JournalEntry,
     Payment,
@@ -39,6 +40,11 @@ class Posting:
     credit: float
     ref: str
     source: str
+
+    @property
+    def key(self) -> str:
+        """Stable identifier for a posting, used by bank reconciliation."""
+        return f"{self.source}|{self.ref}|{self.date}|{self.debit:.2f}|{self.credit:.2f}"
 
 
 def system_accounts(db: Session) -> dict[str, Account]:
@@ -101,6 +107,16 @@ def iter_postings(db: Session, start: date | None = None, end: date | None = Non
             yield Posting(p.date, AP, p.amount, 0, bill.number, "Pay Bill")
         if BANK and p.amount:
             yield Posting(p.date, BANK, 0, p.amount, bill.number, "Pay Bill")
+
+    # --- Direct expenses (Dr expense + SST input, Cr cash/bank) ---
+    for ex in db.execute(select(Expense)).scalars():
+        if not in_range(ex.date):
+            continue
+        if ex.amount:
+            yield Posting(ex.date, ex.expense_account_id, ex.amount, 0, ex.number, "Expense")
+        if SST_IN and ex.tax_amount:
+            yield Posting(ex.date, SST_IN, ex.tax_amount, 0, ex.number, "Expense")
+        yield Posting(ex.date, ex.paid_from_account_id, 0, ex.total, ex.number, "Expense")
 
     # --- Manual journals ---
     for je in db.execute(select(JournalEntry)).scalars():
