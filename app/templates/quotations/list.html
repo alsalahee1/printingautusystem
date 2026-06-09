@@ -1,0 +1,41 @@
+{# Quotation list — Module 2 #}
+{% extends "base.html" %}
+{% block title %}Quotations{% endblock %}
+{% block heading %}<i class="bi bi-file-earmark-text me-2"></i>Quotations{% endblock %}
+{% block actions %}
+  <a href="/quotations/new" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>New Quotation</a>
+{% endblock %}
+{% block content %}
+<div class="card shadow-sm">
+  <div class="card-body p-0">
+    {% if rows %}
+    <table class="table table-hover align-middle mb-0">
+      <thead><tr>
+        <th class="ps-3">Number</th><th>Date</th><th>Customer</th>
+        <th>Status</th><th class="text-end">Items</th><th class="text-end pe-3">Total</th><th></th>
+      </tr></thead>
+      <tbody>
+      {% for q in rows %}
+        <tr>
+          <td class="ps-3"><a href="/quotations/{{ q.id }}" class="fw-semibold text-decoration-none">{{ q.number }}</a></td>
+          <td>{{ q.date }}</td>
+          <td>{{ q.customer.name }}{% if q.customer.company %}<div class="small text-muted">{{ q.customer.company }}</div>{% endif %}</td>
+          <td><span class="badge bg-{{ q.status_color }}">{{ q.status }}</span></td>
+          <td class="text-end">{{ q.items|length }}</td>
+          <td class="text-end pe-3 fw-semibold">{{ settings.currency }} {{ "%.2f"|format(q.total) }}</td>
+          <td class="text-end pe-3">
+            <a href="/quotations/{{ q.id }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="text-center text-muted py-5">
+      <i class="bi bi-file-earmark-text fs-1 d-block mb-2"></i>
+      No quotations yet. <a href="/quotations/new">Create your first estimate</a>.
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

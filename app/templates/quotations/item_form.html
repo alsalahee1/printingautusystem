@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+{% block title %}Estimate Item{% endblock %}
+{% block heading %}<i class="bi bi-calculator me-2"></i>{{ "Edit" if obj else "Add" }} Print Job — {{ q.number }}{% endblock %}
+{% block content %}
+{% set selected = selected_finishings if obj else [] %}
+<form method="post" id="itemForm"
+      action="{{ '/quotations/' ~ q.id ~ '/items/' ~ obj.id ~ '/edit' if obj else '/quotations/' ~ q.id ~ '/items/new' }}">
+<div class="row g-3">
+  <!-- Spec inputs -->
+  <div class="col-lg-7">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white fw-semibold">Job specification</div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-12 required">
+            <label class="form-label">Job title / description</label>
+            <input name="title" class="form-control" required value="{{ obj.title if obj else '' }}"
+                   placeholder="e.g. A4 Flyer — 4/4 art paper 157gsm">
+          </div>
+          <div class="col-md-4 required">
+            <label class="form-label">Quantity</label>
+            <input type="number" name="quantity" class="form-control calc" min="1"
+                   value="{{ obj.quantity if obj else '' }}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Finished width (mm)</label>
+            <input type="number" step="any" name="finished_width_mm" class="form-control calc"
+                   value="{{ obj.finished_width_mm if obj else '' }}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Finished height (mm)</label>
+            <input type="number" step="any" name="finished_height_mm" class="form-control calc"
+                   value="{{ obj.finished_height_mm if obj else '' }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Paper</label>
+            <select name="paper_id" class="form-select calc">
+              <option value="">— select paper —</option>
+              {% for p in papers %}
+                <option value="{{ p.id }}" {{ 'selected' if obj and obj.paper_id == p.id else '' }}>
+                  {{ p.name }}{% if p.gsm %} ({{ p.gsm }}gsm){% endif %}
+                </option>
+              {% endfor %}
+            </select>
+            <div class="form-text">Parent sheet size &amp; cost come from the paper.</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Machine (press)</label>
+            <select name="machine_id" class="form-select calc">
+              <option value="">— select machine —</option>
+              {% for m in machines %}
+                <option value="{{ m.id }}" {{ 'selected' if obj and obj.machine_id == m.id else '' }}>{{ m.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Colours front</label>
+            <input type="number" name="colors_front" class="form-control calc" min="0" max="8"
+                   value="{{ obj.colors_front if obj else 4 }}">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Colours back</label>
+            <input type="number" name="colors_back" class="form-control calc" min="0" max="8"
+                   value="{{ obj.colors_back if obj else 0 }}">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Wastage %</label>
+            <input type="number" step="any" name="wastage_pct" class="form-control calc"
+                   value="{{ obj.wastage_pct if obj else settings.default_wastage_pct }}">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Markup %</label>
+            <input type="number" step="any" name="markup_pct" class="form-control calc"
+                   value="{{ obj.markup_pct if obj else settings.default_markup_pct }}">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Finishing operations</label>
+            <div class="row g-1">
+              {% for f in finishings %}
+              <div class="col-md-6">
+                <div class="form-check">
+                  <input class="form-check-input calc" type="checkbox" name="finishing_ids"
+                         value="{{ f.id }}" id="fin{{ f.id }}" {{ 'checked' if f.id in selected else '' }}>
+                  <label class="form-check-label" for="fin{{ f.id }}">{{ f.name }}
+                    <span class="text-muted small">({{ f.method_label }})</span></label>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Item notes</label>
+            <textarea name="notes" class="form-control" rows="2">{{ obj.notes if obj else '' }}</textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live cost breakdown -->
+  <div class="col-lg-5">
+    <div class="card shadow-sm sticky-top" style="top:70px">
+      <div class="card-header bg-dark text-white fw-semibold d-flex justify-content-between">
+        <span><i class="bi bi-cash-stack me-1"></i>Live estimate</span>
+        <span id="curr">{{ settings.currency }}</span>
+      </div>
+      <div class="card-body">
+        <div id="warnings"></div>
+        <table class="table table-sm mb-2">
+          <tbody>
+            <tr><td>Pieces per sheet (up)</td><td class="text-end" id="ups">—</td></tr>
+            <tr><td>Net / total sheets</td><td class="text-end" id="sheets">—</td></tr>
+            <tr><td>Plates · runs · impressions</td><td class="text-end" id="press">—</td></tr>
+          </tbody>
+        </table>
+        <table class="table table-sm mb-2">
+          <tbody class="small">
+            <tr><td>Paper</td><td class="text-end" id="c_paper">—</td></tr>
+            <tr><td>Ink</td><td class="text-end" id="c_ink">—</td></tr>
+            <tr><td>Plates</td><td class="text-end" id="c_plate">—</td></tr>
+            <tr><td>Make-ready</td><td class="text-end" id="c_makeready">—</td></tr>
+            <tr><td>Press running</td><td class="text-end" id="c_press">—</td></tr>
+            <tr><td>Finishing</td><td class="text-end" id="c_finishing">—</td></tr>
+            <tr class="border-top"><td>Base cost</td><td class="text-end" id="c_base">—</td></tr>
+            <tr><td>Overhead</td><td class="text-end" id="c_overhead">—</td></tr>
+            <tr><td>Markup</td><td class="text-end" id="c_markup">—</td></tr>
+          </tbody>
+        </table>
+        <div class="d-flex justify-content-between align-items-baseline border-top pt-2">
+          <span class="fw-semibold">Line total</span>
+          <span class="fs-4 fw-bold text-success" id="selling">—</span>
+        </div>
+        <div class="d-flex justify-content-between text-muted small">
+          <span>Unit price</span><span id="unit">—</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="d-flex justify-content-between mt-3">
+  <a href="/quotations/{{ q.id }}" class="btn btn-outline-secondary">Cancel</a>
+  <button class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>{{ "Save Item" if obj else "Add Item to Quotation" }}</button>
+</div>
+</form>
+
+<script>
+const form = document.getElementById('itemForm');
+const cur = "{{ settings.currency }}";
+const money = v => cur + " " + (v ?? 0).toFixed(2);
+
+function gather() {
+  const fd = new FormData(form);
+  return {
+    quantity: fd.get('quantity') || 0,
+    finished_width_mm: fd.get('finished_width_mm') || 0,
+    finished_height_mm: fd.get('finished_height_mm') || 0,
+    paper_id: fd.get('paper_id') || null,
+    machine_id: fd.get('machine_id') || null,
+    colors_front: fd.get('colors_front') || 0,
+    colors_back: fd.get('colors_back') || 0,
+    wastage_pct: fd.get('wastage_pct') || 0,
+    markup_pct: fd.get('markup_pct') || 0,
+    finishing_ids: fd.getAll('finishing_ids'),
+  };
+}
+
+async function recalc() {
+  const res = await fetch('/api/estimate', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(gather())
+  });
+  const d = await res.json();
+  const set = (id, v) => document.getElementById(id).textContent = v;
+  set('ups', d.ups);
+  set('sheets', d.net_sheets + " / " + d.total_sheets);
+  set('press', d.num_plates + " · " + d.num_runs + " · " + d.impressions);
+  set('c_paper', money(d.paper_cost));
+  set('c_ink', money(d.ink_cost));
+  set('c_plate', money(d.plate_cost));
+  set('c_makeready', money(d.makeready_cost));
+  set('c_press', money(d.press_cost));
+  set('c_finishing', money(d.finishing_cost));
+  set('c_base', money(d.base_cost));
+  set('c_overhead', money(d.overhead_amount));
+  set('c_markup', money(d.markup_amount));
+  set('selling', money(d.selling_price));
+  set('unit', money(d.unit_price));
+  const w = document.getElementById('warnings');
+  w.innerHTML = (d.warnings || []).map(x =>
+    `<div class="alert alert-warning py-1 px-2 small mb-2">${x}</div>`).join('');
+}
+
+form.querySelectorAll('.calc').forEach(el => {
+  el.addEventListener('input', recalc);
+  el.addEventListener('change', recalc);
+});
+recalc();
+</script>
+{% endblock %}

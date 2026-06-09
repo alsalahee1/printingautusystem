@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Settings{% endblock %}
+{% block heading %}<i class="bi bi-sliders me-2"></i>Settings{% endblock %}
+{% block content %}
+<form method="post" action="/settings">
+  <div class="row g-3">
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-white fw-semibold">Company (shown on quotations)</div>
+        <div class="card-body">
+          <div class="mb-2"><label class="form-label">Company name</label>
+            <input name="company_name" class="form-control" value="{{ s.company_name }}"></div>
+          <div class="mb-2"><label class="form-label">Address</label>
+            <textarea name="company_address" class="form-control" rows="2">{{ s.company_address }}</textarea></div>
+          <div class="row g-2">
+            <div class="col-md-6"><label class="form-label">Phone</label>
+              <input name="company_phone" class="form-control" value="{{ s.company_phone }}"></div>
+            <div class="col-md-6"><label class="form-label">Email</label>
+              <input name="company_email" class="form-control" value="{{ s.company_email }}"></div>
+            <div class="col-md-6"><label class="form-label">Reg No.</label>
+              <input name="company_reg_no" class="form-control" value="{{ s.company_reg_no }}"></div>
+            <div class="col-md-6"><label class="form-label">SST / Tax No.</label>
+              <input name="company_tax_no" class="form-control" value="{{ s.company_tax_no }}"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-white fw-semibold">Costing &amp; quotation defaults</div>
+        <div class="card-body">
+          <div class="row g-2">
+            <div class="col-md-4"><label class="form-label">Currency</label>
+              <input name="currency" class="form-control" value="{{ s.currency }}"></div>
+            <div class="col-md-4"><label class="form-label">Plate cost</label>
+              <input type="number" step="any" name="plate_cost" class="form-control" value="{{ s.plate_cost }}"></div>
+            <div class="col-md-4"><label class="form-label">Ink / 1000 imp.</label>
+              <input type="number" step="any" name="ink_cost_per_1000" class="form-control" value="{{ s.ink_cost_per_1000 }}"></div>
+            <div class="col-md-4"><label class="form-label">Default wastage %</label>
+              <input type="number" step="any" name="default_wastage_pct" class="form-control" value="{{ s.default_wastage_pct }}"></div>
+            <div class="col-md-4"><label class="form-label">Default markup %</label>
+              <input type="number" step="any" name="default_markup_pct" class="form-control" value="{{ s.default_markup_pct }}"></div>
+            <div class="col-md-4"><label class="form-label">Overhead %</label>
+              <input type="number" step="any" name="overhead_pct" class="form-control" value="{{ s.overhead_pct }}"></div>
+            <div class="col-md-4"><label class="form-label">Tax / SST %</label>
+              <input type="number" step="any" name="tax_pct" class="form-control" value="{{ s.tax_pct }}"></div>
+            <div class="col-md-4"><label class="form-label">Quote validity (days)</label>
+              <input type="number" name="quotation_validity_days" class="form-control" value="{{ s.quotation_validity_days }}"></div>
+          </div>
+          <div class="mt-2"><label class="form-label">Default quotation terms</label>
+            <textarea name="quotation_terms" class="form-control" rows="2">{{ s.quotation_terms }}</textarea></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="mt-3 text-end">
+    <button class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Save Settings</button>
+  </div>
+</form>
+{% endblock %}

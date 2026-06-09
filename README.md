@@ -15,8 +15,8 @@ of standard sales, invoicing and accounts-receivable.
 | # | Module | Status |
 |---|--------|--------|
 | **1** | **Foundation + Master Data** — Customers, Suppliers, Stock & Paper (GSM/sheet size/cost), Finishing types, Machines (rates) | ✅ Done |
-| 2 | Job Estimation + Quotation | ⏳ Next |
-| 3 | Work-Order / Job tracking (pre-press → press → post-press) | ⏳ Planned |
+| **2** | **Job Estimation + Quotation** — imposition, plate/make-ready/press/paper/ink/finishing costing, live price preview, printable quotes | ✅ Done |
+| 3 | Work-Order / Job tracking (pre-press → press → post-press) | ⏳ Next |
 | 4 | Core accounting (Sales Order → Delivery Order → Invoice → Receipt + AR) | ⏳ Planned |
 | 5 | Inventory + Purchasing (stock movements, AP) | ⏳ Planned |
 | 6 | Reports + GL (sales, AR aging, job profitability) | ⏳ Planned |
@@ -88,3 +88,28 @@ app/
 
 The **dashboard** shows live counts and **low-stock alerts** (items at or below
 reorder level).
+
+## Module 2 — Estimation & Quotations
+
+The printing-specific costing engine and quoting workflow.
+
+- **Estimation engine** (`app/estimating.py`, pure & unit-testable) models a job
+  the way a print shop actually costs it:
+  1. **Imposition** — pieces per parent sheet, both orientations, with bleed +
+     gripper allowance.
+  2. **Sheets** — net + spoilage (wastage %).
+  3. **Plates** — one CTP plate per colour, per side.
+  4. **Make-ready** — per press run (one run per printed side).
+  5. **Press time** — impressions ÷ press speed + make-ready minutes × hourly rate.
+  6. **Paper & ink** — sheets × cost; ink by colour-impressions.
+  7. **Finishing** — per piece / sheet / job / m².
+  8. **Margin** — overhead %, then markup % → selling price & unit price.
+- **Quotations** — a header (customer, dates, status, tax) plus one or more
+  costed print-job line items. Statuses: Draft → Sent → Approved / Rejected /
+  Expired.
+- **Live price preview** — a JSON `/api/estimate` endpoint recomputes the full
+  cost breakdown as you fill the job form, so you see the price update live.
+- **Printable quotation** — clean A4 layout with your company header, ready to
+  print or save as PDF.
+- **Settings** — company details (for the quote header) plus costing defaults
+  (plate cost, ink rate, default wastage/markup, overhead, tax, validity).

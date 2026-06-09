@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}{{ "Edit" if obj else "New" }} Quotation{% endblock %}
+{% block heading %}<i class="bi bi-file-earmark-text me-2"></i>{{ "Edit Quotation " ~ obj.number if obj else "New Quotation" }}{% endblock %}
+{% block content %}
+<form method="post" action="{{ '/quotations/' ~ obj.id ~ '/edit' if obj else '/quotations/new' }}" class="card shadow-sm">
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-md-6 required">
+        <label class="form-label">Customer</label>
+        <select name="customer_id" class="form-select" required>
+          <option value="">— select customer —</option>
+          {% for c in customers %}
+            <option value="{{ c.id }}" {{ 'selected' if obj and obj.customer_id == c.id else '' }}>
+              {{ c.code }} — {{ c.name }}{% if c.company %} ({{ c.company }}){% endif %}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Status</label>
+        <select name="status" class="form-select">
+          {% for s in statuses %}<option value="{{ s }}" {{ 'selected' if obj and obj.status == s else '' }}>{{ s }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Tax / SST %</label>
+        <input type="number" step="any" name="tax_pct" class="form-control"
+               value="{{ obj.tax_pct if obj else settings.tax_pct }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Date</label>
+        <input type="date" name="date" class="form-control" value="{{ today }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Valid Until</label>
+        <input type="date" name="valid_until" class="form-control" value="{{ valid_until }}">
+      </div>
+      <div class="col-12">
+        <label class="form-label">Notes (shown on quotation)</label>
+        <textarea name="notes" class="form-control" rows="2">{{ obj.notes if obj else '' }}</textarea>
+      </div>
+      <div class="col-12">
+        <label class="form-label">Terms &amp; Conditions</label>
+        <textarea name="terms" class="form-control" rows="2">{{ obj.terms if obj else settings.quotation_terms }}</textarea>
+      </div>
+    </div>
+  </div>
+  <div class="card-footer d-flex justify-content-between">
+    <a href="{{ '/quotations/' ~ obj.id if obj else '/quotations' }}" class="btn btn-outline-secondary">Cancel</a>
+    <button class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>{{ "Save Changes" if obj else "Create & Add Items" }}</button>
+  </div>
+</form>
+{% endblock %}

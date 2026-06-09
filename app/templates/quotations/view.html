@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}{{ q.number }}{% endblock %}
+{% block heading %}<i class="bi bi-file-earmark-text me-2"></i>{{ q.number }}
+  <span class="badge bg-{{ q.status_color }} ms-2">{{ q.status }}</span>{% endblock %}
+{% block actions %}
+  <a href="/quotations/{{ q.id }}/items/new" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Add Print Job</a>
+  <a href="/quotations/{{ q.id }}/print" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-printer me-1"></i>Print</a>
+  <a href="/quotations/{{ q.id }}/edit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i></a>
+{% endblock %}
+{% block content %}
+<div class="row g-3 mb-3">
+  <div class="col-md-8">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <div class="row">
+        <div class="col-sm-6">
+          <div class="text-muted small">Customer</div>
+          <div class="fw-semibold">{{ q.customer.name }}</div>
+          {% if q.customer.company %}<div>{{ q.customer.company }}</div>{% endif %}
+          {% if q.customer.phone %}<div class="small text-muted">{{ q.customer.phone }}</div>{% endif %}
+        </div>
+        <div class="col-sm-3">
+          <div class="text-muted small">Date</div><div>{{ q.date }}</div>
+        </div>
+        <div class="col-sm-3">
+          <div class="text-muted small">Valid Until</div><div>{{ q.valid_until or '—' }}</div>
+        </div>
+      </div>
+      {% if q.notes %}<hr><div class="small"><span class="text-muted">Notes:</span> {{ q.notes }}</div>{% endif %}
+    </div></div>
+  </div>
+  <div class="col-md-4">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <div class="d-flex justify-content-between"><span class="text-muted">Subtotal</span><span>{{ settings.currency }} {{ "%.2f"|format(q.subtotal) }}</span></div>
+      <div class="d-flex justify-content-between"><span class="text-muted">Tax ({{ q.tax_pct }}%)</span><span>{{ settings.currency }} {{ "%.2f"|format(q.tax_amount) }}</span></div>
+      <hr class="my-2">
+      <div class="d-flex justify-content-between fs-5 fw-bold"><span>Total</span><span class="text-success">{{ settings.currency }} {{ "%.2f"|format(q.total) }}</span></div>
+      <form action="/quotations/{{ q.id }}/status" method="post" class="d-flex gap-2 mt-3">
+        <select name="status" class="form-select form-select-sm">
+          {% for s in statuses %}<option value="{{ s }}" {{ 'selected' if q.status == s else '' }}>{{ s }}</option>{% endfor %}
+        </select>
+        <button class="btn btn-sm btn-outline-primary">Set</button>
+      </form>
+    </div></div>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header bg-white fw-semibold">Print jobs ({{ q.items|length }})</div>
+  <div class="card-body p-0">
+    {% if q.items %}
+    <table class="table align-middle mb-0">
+      <thead><tr>
+        <th class="ps-3">#</th><th>Job</th><th>Spec</th><th class="text-end">Qty</th>
+        <th class="text-end">Unit</th><th class="text-end">Line Total</th><th></th>
+      </tr></thead>
+      <tbody>
+      {% for it in q.items %}
+        <tr>
+          <td class="ps-3">{{ it.line_no }}</td>
+          <td>
+            <div class="fw-semibold">{{ it.title }}</div>
+            {% if it.finishings %}<div class="small text-muted">{{ it.finishings|map(attribute='finishing.name')|join(', ') }}</div>{% endif %}
+          </td>
+          <td class="small text-muted">
+            {{ it.finished_width_mm|int }}×{{ it.finished_height_mm|int }}mm ·
+            {{ it.colors_front }}/{{ it.colors_back }} ·
+            {{ it.paper.name if it.paper else '—' }}<br>
+            {{ it.ups }}-up · {{ it.total_sheets }} sheets · {{ it.num_plates }} plates
+          </td>
+          <td class="text-end">{{ it.quantity }}</td>
+          <td class="text-end">{{ "%.3f"|format(it.unit_price) }}</td>
+          <td class="text-end fw-semibold">{{ "%.2f"|format(it.line_total) }}</td>
+          <td class="text-end pe-3">
+            <button class="btn btn-sm btn-link p-0 me-2" data-bs-toggle="collapse" data-bs-target="#br{{ it.id }}" title="Cost breakdown"><i class="bi bi-list-columns"></i></button>
+            <a href="/quotations/{{ q.id }}/items/{{ it.id }}/edit" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+            <form action="/quotations/{{ q.id }}/items/{{ it.id }}/delete" method="post" class="d-inline" onsubmit="return confirm('Remove this item?')">
+              <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+            </form>
+          </td>
+        </tr>
+        <tr class="collapse" id="br{{ it.id }}">
+          <td colspan="7" class="bg-light small">
+            <div class="row px-3 py-1">
+              <div class="col-md-2">Paper: <b>{{ "%.2f"|format(it.paper_cost) }}</b></div>
+              <div class="col-md-2">Ink: <b>{{ "%.2f"|format(it.ink_cost) }}</b></div>
+              <div class="col-md-2">Plates: <b>{{ "%.2f"|format(it.plate_cost) }}</b></div>
+              <div class="col-md-2">Make-ready: <b>{{ "%.2f"|format(it.makeready_cost) }}</b></div>
+              <div class="col-md-2">Press: <b>{{ "%.2f"|format(it.press_cost) }}</b></div>
+              <div class="col-md-2">Finishing: <b>{{ "%.2f"|format(it.finishing_cost) }}</b></div>
+            </div>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="text-center text-muted py-5">
+      No print jobs on this quotation yet.
+      <a href="/quotations/{{ q.id }}/items/new">Add the first one</a> — you'll get live pricing as you type.
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="mt-3">
+  <form action="/quotations/{{ q.id }}/delete" method="post" onsubmit="return confirm('Delete quotation {{ q.number }} and all its items?')">
+    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash me-1"></i>Delete quotation</button>
+  </form>
+</div>
+{% endblock %}

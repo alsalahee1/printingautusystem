@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
 from .database import Base, engine
-from .routers import dashboard, master_data
+from .routers import dashboard, master_data, quotations
 
 app = FastAPI(title="PrintSys — Offset Printing Management")
 
@@ -22,6 +22,7 @@ app.add_middleware(
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 app.include_router(dashboard.router)
+app.include_router(quotations.router)
 for r in master_data.routers:
     app.include_router(r)
 

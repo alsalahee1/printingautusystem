@@ -26,10 +26,13 @@
     <a href="/machines" class="nav-link {% if active_nav == 'machines' %}active{% endif %}"><i class="bi bi-gear-wide-connected me-2"></i>Machines</a>
 
     <div class="text-uppercase small text-secondary mt-3 mb-1">Production &amp; Sales</div>
-    <a href="#" class="nav-link disabled"><i class="bi bi-calculator me-2"></i>Estimation <span class="badge bg-secondary ms-1">soon</span></a>
-    <a href="#" class="nav-link disabled"><i class="bi bi-file-earmark-text me-2"></i>Quotations <span class="badge bg-secondary ms-1">soon</span></a>
+    <a href="/quotations" class="nav-link {% if active_nav == 'quotations' %}active{% endif %}"><i class="bi bi-file-earmark-text me-2"></i>Quotations</a>
+    <a href="/quotations/new" class="nav-link"><i class="bi bi-calculator me-2"></i>New Estimate</a>
     <a href="#" class="nav-link disabled"><i class="bi bi-kanban me-2"></i>Job Cards <span class="badge bg-secondary ms-1">soon</span></a>
     <a href="#" class="nav-link disabled"><i class="bi bi-receipt me-2"></i>Invoicing <span class="badge bg-secondary ms-1">soon</span></a>
+
+    <div class="text-uppercase small text-secondary mt-3 mb-1">System</div>
+    <a href="/settings" class="nav-link {% if active_nav == 'settings' %}active{% endif %}"><i class="bi bi-sliders me-2"></i>Settings</a>
   </nav>
 
   <main class="content flex-grow-1">

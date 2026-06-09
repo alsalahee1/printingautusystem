@@ -4,7 +4,7 @@ Run with:  python -m app.seed
 Idempotent: skips any record whose code already exists.
 """
 from .database import Base, SessionLocal, engine
-from .models import Customer, FinishingType, Machine, StockItem, Supplier
+from .models import Customer, FinishingType, Machine, Settings, StockItem, Supplier
 
 
 def _get_or_create(db, model, code, **values):
@@ -122,6 +122,17 @@ def seed() -> None:
     for code, vals in machines:
         _, is_new = _get_or_create(db, Machine, code, **vals)
         created += is_new
+
+    if not db.get(Settings, 1):
+        db.add(Settings(
+            id=1,
+            company_name="Sample Offset Press Sdn Bhd",
+            company_address="No. 12, Jalan Industri 3\n40000 Shah Alam, Selangor",
+            company_phone="03-5544 3322",
+            company_email="sales@sampleoffset.my",
+            currency="RM",
+        ))
+        created += 1
 
     db.commit()
     db.close()
