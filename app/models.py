@@ -710,3 +710,27 @@ class SupplierPayment(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     bill: Mapped["SupplierBill"] = relationship(back_populates="payments")
+
+
+# ---------------------------------------------------------------------------
+# Module 7: Users & authentication
+# ---------------------------------------------------------------------------
+
+USER_ROLES = ["admin", "staff"]
+
+
+class User(Base):
+    """An application login. Passwords are stored as PBKDF2 hashes (salt$hash)."""
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    username: Mapped[str] = mapped_column(String(60), unique=True, index=True)
+    password_hash: Mapped[str] = mapped_column(String(255), default="")
+    full_name: Mapped[str] = mapped_column(String(120), default="")
+    role: Mapped[str] = mapped_column(String(20), default="staff")
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    @property
+    def is_admin(self) -> bool:
+        return self.role == "admin"

@@ -182,3 +182,13 @@ Turns the captured data into management decisions.
 - **Stock valuation** — on-hand inventory value at cost, grouped by category.
 - **Customer statements** — printable per-customer account statement with
   invoices, payments and balance due.
+
+## Module 7 — Users & Authentication
+
+- **Login required** — every page is behind a sign-in (session-based); a small
+  middleware redirects anonymous visitors to `/login`.
+- **Roles** — `admin` (manage users & settings) and `staff` (everything else).
+- **User management** — admins add/edit/deactivate users and reset passwords.
+- Passwords are stored as PBKDF2-HMAC-SHA256 hashes (standard library only).
+- A default **admin / admin** account is created on first run — change it
+  immediately (set `PRINTSYS_ADMIN_PASS` to seed a different password).

@@ -14,7 +14,10 @@ def flash(request: Request, message: str, category: str = "info") -> None:
 
 
 def _flash_context(request: Request) -> dict:
-    return {"get_flashes": lambda: request.session.pop("_flashes", [])}
+    return {
+        "get_flashes": lambda: request.session.pop("_flashes", []),
+        "user": request.session.get("user"),
+    }
 
 
 templates = Jinja2Templates(
