@@ -14,6 +14,7 @@ from .database import Base, SessionLocal, engine
 from .routers import (
     accounting,
     dashboard,
+    imports,
     jobs,
     master_data,
     purchasing,
@@ -41,6 +42,7 @@ app.include_router(jobs.router)
 app.include_router(accounting.router)
 app.include_router(purchasing.router)
 app.include_router(reports.router)
+app.include_router(imports.router)
 for r in master_data.routers:
     app.include_router(r)
 

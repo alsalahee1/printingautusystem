@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Import Data{% endblock %}
+{% block heading %}<i class="bi bi-upload me-2"></i>Import Data (CSV){% endblock %}
+{% block content %}
+<div class="alert alert-info">
+  Export your <b>Customers</b> or <b>Stock items</b> from AutoCount (or any system) to <b>CSV</b> and upload here.
+  Columns are matched by name automatically and records are matched by <b>code</b> — re-importing
+  <b>updates</b> existing records instead of duplicating them.
+</div>
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white fw-semibold"><i class="bi bi-people me-1"></i>Customers</div>
+      <div class="card-body">
+        <form action="/import/customers" method="post" enctype="multipart/form-data">
+          <input type="file" name="file" accept=".csv,text/csv" class="form-control mb-3" required>
+          <button class="btn btn-primary w-100"><i class="bi bi-upload me-1"></i>Import Customers</button>
+        </form>
+        <p class="form-text mt-2 mb-0">Recognised columns: <code>Code/Account No</code>, <code>Name</code>,
+          <code>Company</code>, <code>Phone</code>, <code>Email</code>, <code>Address</code>, <code>City</code>,
+          <code>SST</code>, <code>TIN</code>, <code>Reg No</code>, <code>Credit Limit</code>, <code>Terms</code>.</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white fw-semibold"><i class="bi bi-box-seam me-1"></i>Stock items &amp; paper</div>
+      <div class="card-body">
+        <form action="/import/stock" method="post" enctype="multipart/form-data">
+          <input type="file" name="file" accept=".csv,text/csv" class="form-control mb-3" required>
+          <button class="btn btn-primary w-100"><i class="bi bi-upload me-1"></i>Import Stock Items</button>
+        </form>
+        <p class="form-text mt-2 mb-0">Recognised columns: <code>Item Code</code>, <code>Description</code>,
+          <code>Category</code>, <code>UOM</code>, <code>GSM</code>, <code>Cost</code>, <code>Selling Price</code>,
+          <code>Balance Qty</code>, <code>Reorder Level</code>.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

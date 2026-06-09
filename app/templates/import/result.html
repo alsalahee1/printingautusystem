@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Import Result{% endblock %}
+{% block heading %}<i class="bi bi-upload me-2"></i>Import Result — {{ kind }}{% endblock %}
+{% block content %}
+<div class="row g-3 mb-3">
+  <div class="col-sm-4"><div class="card shadow-sm text-center"><div class="card-body">
+    <div class="display-6 text-success">{{ created }}</div><div class="text-muted">Created</div></div></div></div>
+  <div class="col-sm-4"><div class="card shadow-sm text-center"><div class="card-body">
+    <div class="display-6 text-primary">{{ updated }}</div><div class="text-muted">Updated</div></div></div></div>
+  <div class="col-sm-4"><div class="card shadow-sm text-center"><div class="card-body">
+    <div class="display-6 {{ 'text-danger' if errors else 'text-muted' }}">{{ errors|length }}</div><div class="text-muted">Skipped</div></div></div></div>
+</div>
+
+{% if errors %}
+<div class="card shadow-sm mb-3">
+  <div class="card-header bg-white fw-semibold">Skipped rows</div>
+  <div class="card-body p-0">
+    <table class="table table-sm mb-0">
+      <thead><tr><th class="ps-3">Row</th><th>Reason</th></tr></thead>
+      <tbody>{% for n, msg in errors %}<tr><td class="ps-3">{{ n }}</td><td>{{ msg }}</td></tr>{% endfor %}</tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<a href="/import" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Import more</a>
+{% if kind == 'Customers' %}<a href="/customers" class="btn btn-primary">View customers</a>
+{% else %}<a href="/stock" class="btn btn-primary">View stock</a>{% endif %}
+{% endblock %}

@@ -20,6 +20,10 @@ of standard sales, invoicing and accounts-receivable.
 | **4** | **Core accounting** — Invoices (from quote/job/manual), Payments/Receipts, AR aging, Delivery Orders | ✅ Done |
 | **5** | **Inventory + Purchasing** — stock movements, Purchase Orders + goods receipt, Supplier Bills, AP aging, job material consumption | ✅ Done |
 | **6** | **Reports & Insight** — financial snapshot, sales summary, job profitability, stock valuation, customer statements | ✅ Done |
+| **7** | **Users & Authentication** — login, roles (admin/staff), user management, hashed passwords | ✅ Done |
+| **8** | **PDF & Email** — server-side PDF quotes/invoices/DOs, email with PDF attachment (SMTP) | ✅ Done |
+| **9** | **e-Invoice & SST** — LHDN MyInvois-aligned JSON export, TIN/BRN/MSIC fields | ✅ Done |
+| **10** | **CSV Import** — bulk-load customers & stock from AutoCount exports, upsert by code | ✅ Done |
 
 ## Quick start
 
@@ -217,3 +221,15 @@ Turns the captured data into management decisions.
 > The final transmit step to the IRBM **MyInvois API** (sign + submit) needs
 > IRBM credentials and is left as a documented integration point; PrintSys
 > prepares the compliant document.
+
+## Module 10 — CSV Import (from AutoCount)
+
+- **Bulk-load Customers and Stock items** from a CSV exported by AutoCount (or
+  any system) under **Import Data**.
+- **Flexible column matching** — headers are matched against common aliases,
+  case/spacing/punctuation-insensitive (e.g. `Account No`, `Company Name`,
+  `Phone1`, `Item Code`, `Balance Qty` are all recognised).
+- **Upsert by code** — re-importing updates existing records instead of
+  duplicating them; rows missing a code or name are skipped and reported.
+- An **import result** screen shows created / updated / skipped counts with the
+  reason for each skipped row.
