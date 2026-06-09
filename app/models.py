@@ -751,3 +751,72 @@ class User(Base):
     @property
     def is_admin(self) -> bool:
         return self.role == "admin"
+
+
+# ---------------------------------------------------------------------------
+# Module 11: General Ledger (double-entry)
+# ---------------------------------------------------------------------------
+
+ACCOUNT_TYPES = ["Asset", "Liability", "Equity", "Income", "Expense"]
+# Account types whose normal (increasing) balance is on the debit side.
+DEBIT_NORMAL_TYPES = {"Asset", "Expense"}
+
+
+class Account(Base):
+    """A chart-of-accounts entry. `system_tag` links standard accounts to the
+    automatic postings made from invoices, bills and payments."""
+    __tablename__ = "accounts"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    code: Mapped[str] = mapped_column(String(20), unique=True, index=True)
+    name: Mapped[str] = mapped_column(String(150))
+    type: Mapped[str] = mapped_column(String(20), default="Asset")
+    system_tag: Mapped[str | None] = mapped_column(String(20), nullable=True, index=True)
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    @property
+    def is_debit_normal(self) -> bool:
+        return self.type in DEBIT_NORMAL_TYPES
+
+
+class JournalEntry(Base):
+    """A manual double-entry journal. Auto-postings from documents are derived
+    on the fly (see app.gl) and are not stored here."""
+    __tablename__ = "journal_entries"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    number: Mapped[str] = mapped_column(String(20), unique=True, index=True)
+    date: Mapped[date] = mapped_column(Date, default=date.today)
+    reference: Mapped[str] = mapped_column(String(80), default="")
+    narration: Mapped[str] = mapped_column(Text, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    lines: Mapped[list["JournalLine"]] = relationship(
+        back_populates="entry", cascade="all, delete-orphan")
+
+    @property
+    def total_debit(self) -> float:
+        return round(sum(l.debit for l in self.lines), 2)
+
+    @property
+    def total_credit(self) -> float:
+        return round(sum(l.credit for l in self.lines), 2)
+
+    @property
+    def is_balanced(self) -> bool:
+        return abs(self.total_debit - self.total_credit) < 0.005
+
+
+class JournalLine(Base):
+    __tablename__ = "journal_lines"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    entry_id: Mapped[int] = mapped_column(ForeignKey("journal_entries.id"))
+    account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"))
+    debit: Mapped[float] = mapped_column(Float, default=0.0)
+    credit: Mapped[float] = mapped_column(Float, default=0.0)
+    description: Mapped[str] = mapped_column(String(200), default="")
+
+    entry: Mapped["JournalEntry"] = relationship(back_populates="lines")
+    account: Mapped["Account"] = relationship()

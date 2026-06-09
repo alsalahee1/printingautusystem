@@ -24,6 +24,7 @@ of standard sales, invoicing and accounts-receivable.
 | **8** | **PDF & Email** — server-side PDF quotes/invoices/DOs, email with PDF attachment (SMTP) | ✅ Done |
 | **9** | **e-Invoice & SST** — LHDN MyInvois-aligned JSON export, TIN/BRN/MSIC fields | ✅ Done |
 | **10** | **CSV Import** — bulk-load customers & stock from AutoCount exports, upsert by code | ✅ Done |
+| **11** | **General Ledger** — chart of accounts, auto-postings from documents, manual journals, Trial Balance / P&L / Balance Sheet | ✅ Done |
 
 ## Quick start
 
@@ -245,3 +246,19 @@ Turns the captured data into management decisions.
   duplicating them; rows missing a code or name are skipped and reported.
 - An **import result** screen shows created / updated / skipped counts with the
   reason for each skipped row.
+
+## Module 11 — General Ledger (double-entry)
+
+Full bookkeeping on top of the operational data.
+
+- **Chart of accounts** — a standard chart is seeded (Bank, AR, AP, SST in/out,
+  Sales, Purchases, expenses…); add your own accounts.
+- **Automatic postings** — invoices, receipts, supplier bills and supplier
+  payments post to the ledger automatically (Dr/Cr) — no manual entry needed.
+  The subledgers are the source of truth and the GL is derived from them, so it
+  is always consistent.
+- **Manual journals** — for adjustments, opening balances and expenses, with a
+  live debit/credit balance check (won't post unless balanced).
+- **Financial statements** — **Trial Balance**, **Profit & Loss** and
+  **Balance Sheet** over any date range, plus drill-down **account ledgers**
+  with running balances.

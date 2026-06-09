@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}New Journal{% endblock %}
+{% block heading %}<i class="bi bi-journal-text me-2"></i>New Journal Entry{% endblock %}
+{% block content %}
+<form method="post" action="/journals/new" class="card shadow-sm">
+  <div class="card-body">
+    <div class="row g-3 mb-3">
+      <div class="col-md-3"><label class="form-label">Date</label>
+        <input type="date" name="date" class="form-control" value="{{ today }}"></div>
+      <div class="col-md-3"><label class="form-label">Reference</label>
+        <input name="reference" class="form-control"></div>
+      <div class="col-md-6"><label class="form-label">Narration</label>
+        <input name="narration" class="form-control"></div>
+    </div>
+    <table class="table align-middle" id="lines">
+      <thead><tr><th>Account</th><th class="text-end" style="width:160px">Debit</th>
+        <th class="text-end" style="width:160px">Credit</th></tr></thead>
+      <tbody>
+      {% for i in range(6) %}
+        <tr>
+          <td>
+            <select name="account_id" class="form-select form-select-sm">
+              <option value="">—</option>
+              {% for a in accounts %}<option value="{{ a.id }}">{{ a.code }} — {{ a.name }}</option>{% endfor %}
+            </select>
+          </td>
+          <td><input name="debit" type="number" step="any" class="form-control form-control-sm text-end dr" value=""></td>
+          <td><input name="credit" type="number" step="any" class="form-control form-control-sm text-end cr" value=""></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr class="fw-bold">
+          <td class="text-end">Totals</td>
+          <td class="text-end" id="td">0.00</td>
+          <td class="text-end" id="tc">0.00</td>
+        </tr>
+        <tr><td colspan="3" class="text-end small" id="bal"></td></tr>
+      </tfoot>
+    </table>
+    <button type="button" class="btn btn-sm btn-outline-secondary" id="addrow"><i class="bi bi-plus-lg me-1"></i>Add line</button>
+  </div>
+  <div class="card-footer d-flex justify-content-between">
+    <a href="/journals" class="btn btn-outline-secondary">Cancel</a>
+    <button class="btn btn-primary" id="save"><i class="bi bi-check-lg me-1"></i>Post Journal</button>
+  </div>
+</form>
+<script>
+const tbody = document.querySelector("#lines tbody");
+function recalc() {
+  let td = 0, tc = 0;
+  tbody.querySelectorAll("tr").forEach(r => {
+    td += parseFloat(r.querySelector(".dr").value) || 0;
+    tc += parseFloat(r.querySelector(".cr").value) || 0;
+  });
+  document.getElementById("td").textContent = td.toFixed(2);
+  document.getElementById("tc").textContent = tc.toFixed(2);
+  const diff = Math.round((td - tc) * 100) / 100;
+  const bal = document.getElementById("bal");
+  bal.textContent = diff === 0 ? "Balanced ✓" : `Out of balance by ${diff.toFixed(2)}`;
+  bal.className = "text-end small " + (diff === 0 ? "text-success" : "text-danger");
+  document.getElementById("save").disabled = (diff !== 0 || td === 0);
+}
+document.getElementById("addrow").addEventListener("click", () => {
+  const r = tbody.rows[0].cloneNode(true);
+  r.querySelectorAll("input").forEach(i => i.value = "");
+  r.querySelector("select").value = "";
+  tbody.appendChild(r);
+  bind(r);
+});
+function bind(r){ r.querySelectorAll("input").forEach(i => i.addEventListener("input", recalc)); }
+tbody.querySelectorAll("tr").forEach(bind);
+recalc();
+</script>
+{% endblock %}

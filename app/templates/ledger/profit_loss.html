@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Profit & Loss{% endblock %}
+{% block heading %}<i class="bi bi-graph-up me-2"></i>Profit &amp; Loss{% endblock %}
+{% block content %}
+<form method="get" class="card shadow-sm mb-3"><div class="card-body d-flex align-items-end gap-3">
+  <div><label class="form-label small mb-0">From</label><input type="date" name="start" value="{{ start }}" class="form-control form-control-sm"></div>
+  <div><label class="form-label small mb-0">To</label><input type="date" name="end" value="{{ end }}" class="form-control form-control-sm"></div>
+  <button class="btn btn-primary btn-sm">Apply</button>
+</div></form>
+<div class="card shadow-sm"><div class="card-body">
+  <h6 class="text-uppercase text-muted small">Income</h6>
+  <table class="table table-sm">
+    <tbody>
+    {% for r in d.income %}<tr><td>{{ r.account.code }} · {{ r.account.name }}</td>
+      <td class="text-end">{{ settings.currency }} {{ "%.2f"|format(r.balance) }}</td></tr>{% endfor %}
+    </tbody>
+    <tfoot><tr class="fw-semibold border-top"><td>Total income</td>
+      <td class="text-end">{{ settings.currency }} {{ "%.2f"|format(d.total_income) }}</td></tr></tfoot>
+  </table>
+  <h6 class="text-uppercase text-muted small mt-3">Expenses</h6>
+  <table class="table table-sm">
+    <tbody>
+    {% for r in d.expense %}<tr><td>{{ r.account.code }} · {{ r.account.name }}</td>
+      <td class="text-end">{{ settings.currency }} {{ "%.2f"|format(r.balance) }}</td></tr>{% endfor %}
+    </tbody>
+    <tfoot><tr class="fw-semibold border-top"><td>Total expenses</td>
+      <td class="text-end">{{ settings.currency }} {{ "%.2f"|format(d.total_expense) }}</td></tr></tfoot>
+  </table>
+  <div class="d-flex justify-content-between align-items-baseline border-top pt-3 mt-2">
+    <span class="h5 mb-0">Net {{ 'Profit' if d.net_profit >= 0 else 'Loss' }}</span>
+    <span class="h4 mb-0 {{ 'text-success' if d.net_profit >= 0 else 'text-danger' }}">
+      {{ settings.currency }} {{ "%.2f"|format(d.net_profit) }}</span>
+  </div>
+</div></div>
+{% endblock %}

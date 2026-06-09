@@ -16,6 +16,7 @@ from .routers import (
     dashboard,
     imports,
     jobs,
+    ledger,
     master_data,
     purchasing,
     quotations,
@@ -42,6 +43,7 @@ app.include_router(jobs.router)
 app.include_router(accounting.router)
 app.include_router(purchasing.router)
 app.include_router(reports.router)
+app.include_router(ledger.router)
 app.include_router(imports.router)
 for r in master_data.routers:
     app.include_router(r)

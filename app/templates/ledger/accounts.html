@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Chart of Accounts{% endblock %}
+{% block heading %}<i class="bi bi-list-columns-reverse me-2"></i>Chart of Accounts{% endblock %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="card shadow-sm"><div class="card-body p-0">
+      <table class="table align-middle mb-0">
+        <thead><tr><th class="ps-3">Code</th><th>Name</th><th>Type</th><th>Active</th><th></th></tr></thead>
+        <tbody>
+        {% for a in rows %}
+          <form id="a{{ a.id }}" action="/accounts/{{ a.id }}/update" method="post"></form>
+          <tr>
+            <td class="ps-3 fw-semibold">{{ a.code }}
+              {% if a.system_tag %}<span class="badge bg-light text-muted" title="System account">{{ a.system_tag }}</span>{% endif %}</td>
+            <td><input form="a{{ a.id }}" name="name" class="form-control form-control-sm" value="{{ a.name }}"></td>
+            <td>
+              <select form="a{{ a.id }}" name="type" class="form-select form-select-sm">
+                {% for t in types %}<option value="{{ t }}" {{ 'selected' if a.type == t else '' }}>{{ t }}</option>{% endfor %}
+              </select>
+            </td>
+            <td><input form="a{{ a.id }}" type="checkbox" name="active" class="form-check-input" {{ 'checked' if a.active else '' }}></td>
+            <td class="text-end pe-3" style="white-space:nowrap">
+              <a href="/accounts/{{ a.id }}/ledger" class="btn btn-sm btn-outline-secondary" title="Ledger detail"><i class="bi bi-search"></i></a>
+              <button form="a{{ a.id }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-check-lg"></i></button>
+              {% if not a.system_tag %}
+              <form action="/accounts/{{ a.id }}/delete" method="post" class="d-inline" onsubmit="return confirm('Delete {{ a.code }}?')">
+                <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div></div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card shadow-sm"><div class="card-header bg-white fw-semibold">Add account</div>
+      <div class="card-body">
+        <form action="/accounts/new" method="post">
+          <div class="mb-2"><label class="form-label small">Code</label>
+            <input name="code" class="form-control form-control-sm" placeholder="e.g. 6300" required></div>
+          <div class="mb-2"><label class="form-label small">Name</label>
+            <input name="name" class="form-control form-control-sm" required></div>
+          <div class="mb-2"><label class="form-label small">Type</label>
+            <select name="type" class="form-select form-select-sm">{% for t in types %}<option>{{ t }}</option>{% endfor %}</select></div>
+          <button class="btn btn-primary btn-sm w-100 mt-2"><i class="bi bi-plus-lg me-1"></i>Add account</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

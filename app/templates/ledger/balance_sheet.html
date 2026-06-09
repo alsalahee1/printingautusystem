@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Balance Sheet{% endblock %}
+{% block heading %}<i class="bi bi-bank me-2"></i>Balance Sheet{% endblock %}
+{% block content %}
+<form method="get" class="card shadow-sm mb-3"><div class="card-body d-flex align-items-end gap-3">
+  <div><label class="form-label small mb-0">As at</label><input type="date" name="as_of" value="{{ as_of }}" class="form-control form-control-sm"></div>
+  <button class="btn btn-primary btn-sm">Apply</button>
+</div></form>
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <h6 class="text-uppercase text-muted small">Assets</h6>
+      <table class="table table-sm"><tbody>
+        {% for r in d.assets %}<tr><td>{{ r.account.name }}</td>
+          <td class="text-end">{{ "%.2f"|format(r.balance) }}</td></tr>{% endfor %}
+      </tbody><tfoot><tr class="fw-bold border-top"><td>Total Assets</td>
+        <td class="text-end">{{ settings.currency }} {{ "%.2f"|format(d.total_assets) }}</td></tr></tfoot></table>
+    </div></div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <h6 class="text-uppercase text-muted small">Liabilities</h6>
+      <table class="table table-sm"><tbody>
+        {% for r in d.liabilities %}<tr><td>{{ r.account.name }}</td>
+          <td class="text-end">{{ "%.2f"|format(r.balance) }}</td></tr>{% endfor %}
+      </tbody><tfoot><tr class="fw-semibold border-top"><td>Total Liabilities</td>
+        <td class="text-end">{{ "%.2f"|format(d.total_liabilities) }}</td></tr></tfoot></table>
+      <h6 class="text-uppercase text-muted small mt-3">Equity</h6>
+      <table class="table table-sm"><tbody>
+        {% for r in d.equity %}<tr><td>{{ r.account.name }}</td>
+          <td class="text-end">{{ "%.2f"|format(r.balance) }}</td></tr>{% endfor %}
+        <tr><td>Current period earnings</td><td class="text-end">{{ "%.2f"|format(d.current_earnings) }}</td></tr>
+      </tbody><tfoot><tr class="fw-semibold border-top"><td>Total Equity</td>
+        <td class="text-end">{{ "%.2f"|format(d.total_equity_with_earnings) }}</td></tr></tfoot></table>
+      <div class="d-flex justify-content-between fw-bold border-top pt-2">
+        <span>Total Liabilities + Equity</span>
+        <span>{{ settings.currency }} {{ "%.2f"|format(d.total_liab_equity) }}</span>
+      </div>
+    </div></div>
+  </div>
+</div>
+{% set diff = (d.total_assets - d.total_liab_equity)|abs %}
+{% if diff < 0.05 %}<p class="text-success small mt-2">Assets = Liabilities + Equity ✓</p>
+{% else %}<div class="alert alert-warning mt-2">Out of balance by {{ "%.2f"|format(diff) }} — check manual journals.</div>{% endif %}
+{% endblock %}
