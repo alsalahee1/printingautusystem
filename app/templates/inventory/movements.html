@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Stock Movements{% endblock %}
+{% block heading %}<i class="bi bi-arrow-left-right me-2"></i>Stock Movements{% endblock %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-lg-4">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white fw-semibold">Record movement</div>
+      <div class="card-body">
+        <form action="/stock-movements/add" method="post">
+          <div class="mb-2"><label class="form-label small">Item</label>
+            <select name="stock_item_id" class="form-select form-select-sm" required>
+              <option value="">— select —</option>
+              {% for it in items %}<option value="{{ it.id }}">{{ it.code }} — {{ it.name }} (on hand {{ it.qty_on_hand|round(1) }})</option>{% endfor %}
+            </select></div>
+          <div class="row g-2">
+            <div class="col-6"><label class="form-label small">Direction</label>
+              <select name="direction" class="form-select form-select-sm">
+                <option value="in">In (+)</option><option value="out">Out (−)</option>
+              </select></div>
+            <div class="col-6"><label class="form-label small">Type</label>
+              <select name="type" class="form-select form-select-sm">
+                <option>Receipt</option><option>Issue</option><option selected>Adjustment</option>
+              </select></div>
+            <div class="col-6"><label class="form-label small">Quantity</label>
+              <input type="number" step="any" name="quantity" class="form-control form-control-sm" required></div>
+            <div class="col-6"><label class="form-label small">Unit cost</label>
+              <input type="number" step="any" name="unit_cost" class="form-control form-control-sm" value="0"></div>
+          </div>
+          <div class="mt-2"><label class="form-label small">Reference</label>
+            <input name="reference" class="form-control form-control-sm"></div>
+          <button class="btn btn-primary btn-sm w-100 mt-3"><i class="bi bi-plus-lg me-1"></i>Record</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-8">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white d-flex justify-content-between">
+        <span class="fw-semibold">Movement history</span>
+        <form method="get" class="m-0">
+          <select name="item" class="form-select form-select-sm" onchange="this.form.submit()" style="width:auto">
+            <option value="">All items</option>
+            {% for it in items %}<option value="{{ it.id }}" {{ 'selected' if selected_item == it.id else '' }}>{{ it.name }}</option>{% endfor %}
+          </select>
+        </form>
+      </div>
+      <div class="card-body p-0">
+        {% if rows %}
+        <table class="table table-sm align-middle mb-0">
+          <thead><tr><th class="ps-3">Date</th><th>Item</th><th>Type</th><th class="text-end">Qty</th><th>Reference</th><th></th></tr></thead>
+          <tbody>
+          {% for m in rows %}
+            <tr>
+              <td class="ps-3">{{ m.date }}</td>
+              <td>{{ m.stock_item.name }}</td>
+              <td><span class="badge bg-light text-dark">{{ m.type }}</span></td>
+              <td class="text-end fw-semibold {{ 'text-success' if m.quantity >= 0 else 'text-danger' }}">{{ '%+g'|format(m.quantity) }}</td>
+              <td class="small text-muted">{{ m.reference or '—' }}</td>
+              <td class="text-end pe-3">
+                <form action="/stock-movements/{{ m.id }}/delete" method="post" onsubmit="return confirm('Reverse this movement?')">
+                  <button class="btn btn-sm btn-outline-danger"><i class="bi bi-arrow-counterclockwise"></i></button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        {% else %}<p class="text-muted text-center py-4 mb-0">No stock movements recorded yet.</p>{% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

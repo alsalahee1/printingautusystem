@@ -539,3 +539,174 @@ class DeliveryOrderItem(Base):
     quantity: Mapped[float] = mapped_column(Float, default=1.0)
 
     delivery_order: Mapped["DeliveryOrder"] = relationship(back_populates="items")
+
+
+# ---------------------------------------------------------------------------
+# Module 5: Inventory movements & Purchasing (PO, goods receipt, AP)
+# ---------------------------------------------------------------------------
+
+# Movement types. Quantity is signed: positive = into stock, negative = out.
+MOVEMENT_TYPES = ["Receipt", "Issue", "Adjustment", "Job Usage", "PO Receipt"]
+
+PO_STATUSES = ["Draft", "Ordered", "Received", "Cancelled"]
+PO_STATUS_COLORS = {"Draft": "secondary", "Ordered": "info", "Received": "success", "Cancelled": "danger"}
+
+BILL_STATUS_COLORS = {"Unpaid": "danger", "Partial": "warning", "Paid": "success", "Cancelled": "secondary"}
+
+
+class StockMovement(Base):
+    """A single in/out/adjustment against a stock item (the inventory ledger)."""
+    __tablename__ = "stock_movements"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    stock_item_id: Mapped[int] = mapped_column(ForeignKey("stock_items.id"))
+    date: Mapped[date] = mapped_column(Date, default=date.today)
+    type: Mapped[str] = mapped_column(String(20), default="Adjustment")
+    quantity: Mapped[float] = mapped_column(Float, default=0.0)   # signed
+    unit_cost: Mapped[float] = mapped_column(Float, default=0.0)
+    reference: Mapped[str] = mapped_column(String(80), default="")
+    notes: Mapped[str] = mapped_column(String(200), default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    stock_item: Mapped["StockItem"] = relationship()
+
+
+class PurchaseOrder(Base):
+    __tablename__ = "purchase_orders"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    number: Mapped[str] = mapped_column(String(20), unique=True, index=True)
+    supplier_id: Mapped[int] = mapped_column(ForeignKey("suppliers.id"))
+    date: Mapped[date] = mapped_column(Date, default=date.today)
+    expected_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    status: Mapped[str] = mapped_column(String(20), default="Draft")
+    notes: Mapped[str] = mapped_column(Text, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    supplier: Mapped["Supplier"] = relationship()
+    items: Mapped[list["PurchaseOrderItem"]] = relationship(
+        back_populates="po", cascade="all, delete-orphan", order_by="PurchaseOrderItem.line_no"
+    )
+
+    @property
+    def status_color(self) -> str:
+        return PO_STATUS_COLORS.get(self.status, "secondary")
+
+    @property
+    def total(self) -> float:
+        return round(sum(i.amount for i in self.items), 2)
+
+
+class PurchaseOrderItem(Base):
+    __tablename__ = "purchase_order_items"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    po_id: Mapped[int] = mapped_column(ForeignKey("purchase_orders.id"))
+    line_no: Mapped[int] = mapped_column(Integer, default=1)
+    stock_item_id: Mapped[int | None] = mapped_column(ForeignKey("stock_items.id"), nullable=True)
+    description: Mapped[str] = mapped_column(Text, default="")
+    quantity: Mapped[float] = mapped_column(Float, default=0.0)
+    unit_cost: Mapped[float] = mapped_column(Float, default=0.0)
+
+    po: Mapped["PurchaseOrder"] = relationship(back_populates="items")
+    stock_item: Mapped["StockItem | None"] = relationship()
+
+    @property
+    def amount(self) -> float:
+        return round(self.quantity * self.unit_cost, 2)
+
+
+class SupplierBill(Base):
+    """A supplier invoice (the AP mirror of a customer Invoice)."""
+    __tablename__ = "supplier_bills"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    number: Mapped[str] = mapped_column(String(20), unique=True, index=True)
+    supplier_id: Mapped[int] = mapped_column(ForeignKey("suppliers.id"))
+    supplier_ref: Mapped[str] = mapped_column(String(60), default="")   # supplier's own invoice no.
+    po_id: Mapped[int | None] = mapped_column(ForeignKey("purchase_orders.id"), nullable=True)
+    date: Mapped[date] = mapped_column(Date, default=date.today)
+    due_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    tax_pct: Mapped[float] = mapped_column(Float, default=0.0)
+    cancelled: Mapped[bool] = mapped_column(Boolean, default=False)
+    notes: Mapped[str] = mapped_column(Text, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    supplier: Mapped["Supplier"] = relationship()
+    items: Mapped[list["SupplierBillItem"]] = relationship(
+        back_populates="bill", cascade="all, delete-orphan", order_by="SupplierBillItem.line_no"
+    )
+    payments: Mapped[list["SupplierPayment"]] = relationship(
+        back_populates="bill", cascade="all, delete-orphan", order_by="SupplierPayment.date"
+    )
+
+    @property
+    def subtotal(self) -> float:
+        return round(sum(i.amount for i in self.items), 2)
+
+    @property
+    def tax_amount(self) -> float:
+        return round(self.subtotal * self.tax_pct / 100, 2)
+
+    @property
+    def total(self) -> float:
+        return round(self.subtotal + self.tax_amount, 2)
+
+    @property
+    def paid_amount(self) -> float:
+        return round(sum(p.amount for p in self.payments), 2)
+
+    @property
+    def balance(self) -> float:
+        return round(self.total - self.paid_amount, 2)
+
+    @property
+    def status(self) -> str:
+        if self.cancelled:
+            return "Cancelled"
+        if self.balance <= 0 and self.total > 0:
+            return "Paid"
+        if self.paid_amount > 0:
+            return "Partial"
+        return "Unpaid"
+
+    @property
+    def status_color(self) -> str:
+        return BILL_STATUS_COLORS.get(self.status, "secondary")
+
+    @property
+    def is_overdue(self) -> bool:
+        return bool(self.due_date and self.due_date < date.today()
+                    and self.balance > 0 and not self.cancelled)
+
+
+class SupplierBillItem(Base):
+    __tablename__ = "supplier_bill_items"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    bill_id: Mapped[int] = mapped_column(ForeignKey("supplier_bills.id"))
+    line_no: Mapped[int] = mapped_column(Integer, default=1)
+    description: Mapped[str] = mapped_column(Text, default="")
+    quantity: Mapped[float] = mapped_column(Float, default=1.0)
+    unit_price: Mapped[float] = mapped_column(Float, default=0.0)
+
+    bill: Mapped["SupplierBill"] = relationship(back_populates="items")
+
+    @property
+    def amount(self) -> float:
+        return round(self.quantity * self.unit_price, 2)
+
+
+class SupplierPayment(Base):
+    __tablename__ = "supplier_payments"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    bill_id: Mapped[int] = mapped_column(ForeignKey("supplier_bills.id"))
+    date: Mapped[date] = mapped_column(Date, default=date.today)
+    amount: Mapped[float] = mapped_column(Float, default=0.0)
+    method: Mapped[str] = mapped_column(String(20), default="Bank Transfer")
+    reference: Mapped[str] = mapped_column(String(80), default="")
+    notes: Mapped[str] = mapped_column(String(200), default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    bill: Mapped["SupplierBill"] = relationship(back_populates="payments")

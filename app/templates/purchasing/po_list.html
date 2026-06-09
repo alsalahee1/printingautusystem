@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Purchase Orders{% endblock %}
+{% block heading %}<i class="bi bi-cart me-2"></i>Purchase Orders{% endblock %}
+{% block actions %}
+  <a href="/purchase-orders/new" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>New PO</a>
+{% endblock %}
+{% block content %}
+<div class="card shadow-sm">
+  <div class="card-body p-0">
+    {% if rows %}
+    <table class="table table-hover align-middle mb-0">
+      <thead><tr><th class="ps-3">PO #</th><th>Date</th><th>Supplier</th><th>Status</th>
+        <th class="text-end">Items</th><th class="text-end pe-3">Total</th><th></th></tr></thead>
+      <tbody>
+      {% for p in rows %}
+        <tr>
+          <td class="ps-3"><a href="/purchase-orders/{{ p.id }}" class="fw-semibold text-decoration-none">{{ p.number }}</a></td>
+          <td>{{ p.date }}</td>
+          <td>{{ p.supplier.name }}</td>
+          <td><span class="badge bg-{{ p.status_color }}">{{ p.status }}</span></td>
+          <td class="text-end">{{ p.items|length }}</td>
+          <td class="text-end pe-3 fw-semibold">{{ settings.currency }} {{ "%.2f"|format(p.total) }}</td>
+          <td class="text-end pe-3"><a href="/purchase-orders/{{ p.id }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i></a></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="text-center text-muted py-5">
+      <i class="bi bi-cart fs-1 d-block mb-2"></i>
+      No purchase orders yet. <a href="/purchase-orders/new">Create one</a>.
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

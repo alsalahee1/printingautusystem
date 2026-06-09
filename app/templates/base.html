@@ -22,6 +22,7 @@
     <a href="/customers" class="nav-link {% if active_nav == 'customers' %}active{% endif %}"><i class="bi bi-people me-2"></i>Customers</a>
     <a href="/suppliers" class="nav-link {% if active_nav == 'suppliers' %}active{% endif %}"><i class="bi bi-truck me-2"></i>Suppliers</a>
     <a href="/stock" class="nav-link {% if active_nav == 'stock' %}active{% endif %}"><i class="bi bi-box-seam me-2"></i>Stock &amp; Paper</a>
+    <a href="/stock-movements" class="nav-link {% if active_nav == 'movements' %}active{% endif %}"><i class="bi bi-arrow-left-right me-2"></i>Stock Movements</a>
     <a href="/finishing" class="nav-link {% if active_nav == 'finishing' %}active{% endif %}"><i class="bi bi-scissors me-2"></i>Finishing</a>
     <a href="/machines" class="nav-link {% if active_nav == 'machines' %}active{% endif %}"><i class="bi bi-gear-wide-connected me-2"></i>Machines</a>
 
@@ -31,9 +32,14 @@
     <a href="/jobs" class="nav-link {% if active_nav == 'jobs' %}active{% endif %}"><i class="bi bi-kanban me-2"></i>Job Cards</a>
     <a href="/delivery-orders" class="nav-link {% if active_nav == 'deliveries' %}active{% endif %}"><i class="bi bi-box-arrow-right me-2"></i>Delivery Orders</a>
 
-    <div class="text-uppercase small text-secondary mt-3 mb-1">Accounting</div>
+    <div class="text-uppercase small text-secondary mt-3 mb-1">Sales Accounting</div>
     <a href="/invoices" class="nav-link {% if active_nav == 'invoices' %}active{% endif %}"><i class="bi bi-receipt me-2"></i>Invoices</a>
     <a href="/ar" class="nav-link {% if active_nav == 'ar' %}active{% endif %}"><i class="bi bi-cash-coin me-2"></i>Accounts Receivable</a>
+
+    <div class="text-uppercase small text-secondary mt-3 mb-1">Purchasing</div>
+    <a href="/purchase-orders" class="nav-link {% if active_nav == 'purchase_orders' %}active{% endif %}"><i class="bi bi-cart me-2"></i>Purchase Orders</a>
+    <a href="/bills" class="nav-link {% if active_nav == 'bills' %}active{% endif %}"><i class="bi bi-file-earmark-ruled me-2"></i>Supplier Bills</a>
+    <a href="/ap" class="nav-link {% if active_nav == 'ap' %}active{% endif %}"><i class="bi bi-cash-stack me-2"></i>Accounts Payable</a>
 
     <div class="text-uppercase small text-secondary mt-3 mb-1">System</div>
     <a href="/settings" class="nav-link {% if active_nav == 'settings' %}active{% endif %}"><i class="bi bi-sliders me-2"></i>Settings</a>

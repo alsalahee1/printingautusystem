@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ po.number }} — {{ settings.company_name }}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>body{background:#fff} @media print{.no-print{display:none}} .doc{max-width:800px;margin:0 auto;padding:24px}</style>
+</head>
+<body>
+<div class="doc">
+  <div class="no-print text-end mb-2">
+    <button onclick="window.print()" class="btn btn-primary btn-sm">Print / Save PDF</button>
+    <a href="/purchase-orders/{{ po.id }}" class="btn btn-outline-secondary btn-sm">Back</a>
+  </div>
+  <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-3">
+    <div>
+      <h3 class="mb-0">{{ settings.company_name }}</h3>
+      <div class="small text-muted" style="white-space: pre-line">{{ settings.company_address }}</div>
+      <div class="small text-muted">{% if settings.company_phone %}Tel: {{ settings.company_phone }}{% endif %}</div>
+    </div>
+    <div class="text-end">
+      <h2 class="text-uppercase text-muted">Purchase Order</h2>
+      <div><b>{{ po.number }}</b></div>
+      <div class="small">Date: {{ po.date }}</div>
+      {% if po.expected_date %}<div class="small">Expected: {{ po.expected_date }}</div>{% endif %}
+    </div>
+  </div>
+  <div class="mb-3">
+    <div class="text-muted small text-uppercase">Supplier</div>
+    <div class="fw-semibold">{{ po.supplier.name }}</div>
+    <div class="small" style="white-space: pre-line">{{ po.supplier.address }}</div>
+  </div>
+  <table class="table table-sm">
+    <thead class="table-light"><tr><th>#</th><th>Description</th><th class="text-end">Qty</th><th class="text-end">Unit Cost</th><th class="text-end">Amount</th></tr></thead>
+    <tbody>
+      {% for it in po.items %}
+      <tr><td>{{ it.line_no }}</td><td>{{ it.description }}</td><td class="text-end">{{ it.quantity|round(2) }}</td>
+        <td class="text-end">{{ "%.2f"|format(it.unit_cost) }}</td>
+        <td class="text-end">{{ settings.currency }} {{ "%.2f"|format(it.amount) }}</td></tr>
+      {% endfor %}
+    </tbody>
+    <tfoot><tr class="fw-bold"><td colspan="4" class="text-end">Total</td>
+      <td class="text-end">{{ settings.currency }} {{ "%.2f"|format(po.total) }}</td></tr></tfoot>
+  </table>
+  {% if po.notes %}<div class="small text-muted border-top pt-2" style="white-space: pre-line">{{ po.notes }}</div>{% endif %}
+</div>
+</body>
+</html>

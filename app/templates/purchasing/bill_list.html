@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Supplier Bills{% endblock %}
+{% block heading %}<i class="bi bi-file-earmark-ruled me-2"></i>Supplier Bills{% endblock %}
+{% block actions %}
+  <a href="/bills/new" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>New Bill</a>
+{% endblock %}
+{% block content %}
+<div class="card stat-card shadow-sm mb-3"><div class="card-body py-2">
+  <div class="text-muted small">Total payable (AP)</div>
+  <div class="h4 mb-0 text-danger">{{ settings.currency }} {{ "%.2f"|format(total_out) }}</div>
+</div></div>
+<ul class="nav nav-pills mb-3 small">
+  <li class="nav-item"><a class="nav-link {{ 'active' if not active_status else '' }}" href="/bills">All</a></li>
+  {% for s in ["Unpaid","Partial","Paid","Cancelled"] %}
+  <li class="nav-item"><a class="nav-link {{ 'active' if active_status == s else '' }}" href="/bills?status={{ s }}">{{ s }}</a></li>
+  {% endfor %}
+</ul>
+<div class="card shadow-sm"><div class="card-body p-0">
+  {% if rows %}
+  <table class="table table-hover align-middle mb-0">
+    <thead><tr><th class="ps-3">Bill #</th><th>Supplier Ref</th><th>Date</th><th>Due</th><th>Supplier</th>
+      <th>Status</th><th class="text-end">Total</th><th class="text-end pe-3">Balance</th><th></th></tr></thead>
+    <tbody>
+    {% for b in rows %}
+      <tr>
+        <td class="ps-3"><a href="/bills/{{ b.id }}" class="fw-semibold text-decoration-none">{{ b.number }}</a></td>
+        <td class="small text-muted">{{ b.supplier_ref or '—' }}</td>
+        <td>{{ b.date }}</td>
+        <td class="{{ 'text-danger fw-semibold' if b.is_overdue else '' }}">{{ b.due_date or '—' }}</td>
+        <td>{{ b.supplier.name }}</td>
+        <td><span class="badge bg-{{ b.status_color }}">{{ b.status }}</span></td>
+        <td class="text-end">{{ "%.2f"|format(b.total) }}</td>
+        <td class="text-end pe-3 fw-semibold {{ 'text-danger' if b.balance > 0 else '' }}">{{ "%.2f"|format(b.balance) }}</td>
+        <td class="text-end pe-3"><a href="/bills/{{ b.id }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i></a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="text-center text-muted py-5"><i class="bi bi-file-earmark-ruled fs-1 d-block mb-2"></i>
+    No supplier bills. Create one from a <a href="/purchase-orders">PO</a> or <a href="/bills/new">manually</a>.</div>
+  {% endif %}
+</div></div>
+{% endblock %}

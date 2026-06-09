@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}{{ po.number }}{% endblock %}
+{% block heading %}<i class="bi bi-cart me-2"></i>{{ po.number }}
+  <span class="badge bg-{{ po.status_color }} ms-2">{{ po.status }}</span>{% endblock %}
+{% block actions %}
+  {% if po.status != 'Received' and po.items %}
+  <form action="/purchase-orders/{{ po.id }}/receive" method="post" class="d-inline"
+        onsubmit="return confirm('Receive all lines into stock? This increases on-hand quantities.')">
+    <button class="btn btn-success btn-sm"><i class="bi bi-box-arrow-in-down me-1"></i>Receive into Stock</button>
+  </form>
+  {% endif %}
+  {% if po.items %}
+  <form action="/purchase-orders/{{ po.id }}/bill" method="post" class="d-inline"
+        onsubmit="return confirm('Create a supplier bill from this PO?')">
+    <button class="btn btn-outline-success btn-sm"><i class="bi bi-file-earmark-ruled me-1"></i>Create Bill</button>
+  </form>
+  {% endif %}
+  <a href="/purchase-orders/{{ po.id }}/print" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-printer"></i></a>
+{% endblock %}
+{% block content %}
+<div class="card shadow-sm mb-3"><div class="card-body">
+  <div class="row">
+    <div class="col-sm-5"><div class="text-muted small">Supplier</div>
+      <div class="fw-semibold">{{ po.supplier.name }}</div></div>
+    <div class="col-sm-3"><div class="text-muted small">Date</div><div>{{ po.date }}</div></div>
+    <div class="col-sm-2"><div class="text-muted small">Expected</div><div>{{ po.expected_date or '—' }}</div></div>
+    <div class="col-sm-2">
+      <form action="/purchase-orders/{{ po.id }}/status" method="post" class="d-flex gap-1">
+        <select name="status" class="form-select form-select-sm">
+          {% for s in statuses %}<option value="{{ s }}" {{ 'selected' if po.status == s else '' }}>{{ s }}</option>{% endfor %}
+        </select>
+        <button class="btn btn-sm btn-outline-primary">Set</button>
+      </form>
+    </div>
+  </div>
+</div></div>
+
+{% for it in po.items %}
+  <form id="delpo{{ it.id }}" action="/purchase-orders/{{ po.id }}/items/{{ it.id }}/delete" method="post"></form>
+{% endfor %}
+<form id="addpo" action="/purchase-orders/{{ po.id }}/items/add" method="post"></form>
+<div class="card shadow-sm">
+  <div class="card-header bg-white fw-semibold">Order lines</div>
+  <div class="card-body p-0">
+    <table class="table align-middle mb-0">
+      <thead><tr><th class="ps-3" style="width:45px">#</th><th>Item / description</th>
+        <th class="text-end" style="width:120px">Qty</th><th class="text-end" style="width:130px">Unit Cost</th>
+        <th class="text-end" style="width:120px">Amount</th><th style="width:60px"></th></tr></thead>
+      <tbody>
+      {% for it in po.items %}
+        <tr>
+          <td class="ps-3">{{ it.line_no }}</td>
+          <td>{{ it.description }}{% if it.stock_item %}<span class="small text-muted"> ({{ it.stock_item.code }})</span>{% endif %}</td>
+          <td class="text-end">{{ it.quantity|round(2) }}</td>
+          <td class="text-end">{{ "%.2f"|format(it.unit_cost) }}</td>
+          <td class="text-end fw-semibold">{{ "%.2f"|format(it.amount) }}</td>
+          <td class="text-end pe-3">
+            {% if po.status != 'Received' %}<button form="delpo{{ it.id }}" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>{% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      {% if po.status != 'Received' %}
+        <tr class="table-light">
+          <td class="ps-3 text-muted">+</td>
+          <td>
+            <select form="addpo" name="stock_item_id" class="form-select form-select-sm">
+              <option value="">— stock item (optional) —</option>
+              {% for s in stock_items %}<option value="{{ s.id }}">{{ s.code }} — {{ s.name }}</option>{% endfor %}
+            </select>
+            <input form="addpo" name="description" class="form-control form-control-sm mt-1" placeholder="Or free-text description">
+          </td>
+          <td><input form="addpo" name="quantity" type="number" step="any" class="form-control form-control-sm text-end" value="0"></td>
+          <td><input form="addpo" name="unit_cost" type="number" step="any" class="form-control form-control-sm text-end" value="0"></td>
+          <td></td>
+          <td class="text-end pe-3"><button form="addpo" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i></button></td>
+        </tr>
+      {% endif %}
+      </tbody>
+      <tfoot class="table-light"><tr class="fw-bold"><td colspan="4" class="text-end">Total</td>
+        <td class="text-end">{{ settings.currency }} {{ "%.2f"|format(po.total) }}</td><td></td></tr></tfoot>
+    </table>
+  </div>
+</div>
+
+<div class="mt-3">
+  <form action="/purchase-orders/{{ po.id }}/delete" method="post" onsubmit="return confirm('Delete {{ po.number }}?')">
+    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash me-1"></i>Delete PO</button>
+  </form>
+</div>
+{% endblock %}

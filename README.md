@@ -18,8 +18,8 @@ of standard sales, invoicing and accounts-receivable.
 | **2** | **Job Estimation + Quotation** — imposition, plate/make-ready/press/paper/ink/finishing costing, live price preview, printable quotes | ✅ Done |
 | **3** | **Work-Order / Job tracking** — convert quote → job card, production stages (pre-press → delivery), progress, due dates, priorities | ✅ Done |
 | **4** | **Core accounting** — Invoices (from quote/job/manual), Payments/Receipts, AR aging, Delivery Orders | ✅ Done |
-| 5 | Inventory + Purchasing (stock movements, AP) | ⏳ Next |
-| 6 | Reports + GL (sales, AR aging, job profitability) | ⏳ Planned |
+| **5** | **Inventory + Purchasing** — stock movements, Purchase Orders + goods receipt, Supplier Bills, AP aging, job material consumption | ✅ Done |
+| 6 | Reports + GL (sales, job profitability, statements) | ⏳ Next |
 
 ## Quick start
 
@@ -152,3 +152,18 @@ Where the money gets tracked.
 
 > Scope note: a separate *Sales Order* document is intentionally omitted — the
 > Quotation → Job flow already covers the pre-invoice stage for a print shop.
+
+## Module 5 — Inventory & Purchasing
+
+Closes the loop on materials and what you owe suppliers.
+
+- **Stock movements** — an inventory ledger of every Receipt / Issue /
+  Adjustment, keeping each item's on-hand quantity in step. Reversible.
+- **Purchase Orders** — order materials from a supplier; "Receive into Stock"
+  turns the PO lines into stock-in movements and bumps on-hand quantities.
+- **Job material consumption** — one click on a job issues each item's paper
+  (by total sheets) out of stock as "Job Usage" movements.
+- **Supplier Bills (Accounts Payable)** — create from a received PO or
+  manually; inline-editable lines, full/partial supplier **payments**, and
+  status Unpaid → Partial → Paid (the AP mirror of customer AR).
+- **AP aging report** — open payables bucketed by days past due, per supplier.
