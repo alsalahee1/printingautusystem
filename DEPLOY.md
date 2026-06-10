@@ -4,6 +4,18 @@ PrintSys is a single FastAPI app. It runs anywhere Python 3.10+ runs — a shop
 PC, an office server, or a small cloud VM. SQLite needs no setup; PostgreSQL or
 SQL Server is a drop-in for multi-user use.
 
+## 0. Docker (easiest)
+
+```bash
+docker compose up -d        # builds and starts PrintSys
+```
+
+Open `http://localhost:8000` and log in as **admin / admin** (change it). The
+SQLite database persists in the `printsys-data` volume. Edit `docker-compose.yml`
+to set `PRINTSYS_SECRET`/`PRINTSYS_ADMIN_PASS`, or switch to the bundled (commented)
+PostgreSQL service. Tables, the admin user and the chart of accounts are created
+automatically on first start.
+
 ## 1. Quick run (single PC)
 
 ```bash
@@ -91,3 +103,5 @@ pytest
 ```
 
 The suite uses an isolated temporary database and does not touch your data.
+A GitHub Actions workflow (`.github/workflows/ci.yml`) runs the same tests
+automatically on every push and pull request.

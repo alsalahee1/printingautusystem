@@ -1,0 +1,30 @@
+# Run PrintSys with: docker compose up -d  ->  http://localhost:8000  (admin / admin)
+services:
+  printsys:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      # Change these for any real deployment.
+      PRINTSYS_SECRET: "change-me-to-a-long-random-string"
+      PRINTSYS_ADMIN_PASS: "admin"
+      # Default is SQLite on the named volume below. To use PostgreSQL instead,
+      # uncomment the line below and the `db` service, and add psycopg to deps.
+      # PRINTSYS_DB_URL: "postgresql+psycopg://printsys:printsys@db/printsys"
+    volumes:
+      - printsys-data:/data
+    restart: unless-stopped
+
+  # db:
+  #   image: postgres:16
+  #   environment:
+  #     POSTGRES_USER: printsys
+  #     POSTGRES_PASSWORD: printsys
+  #     POSTGRES_DB: printsys
+  #   volumes:
+  #     - printsys-db:/var/lib/postgresql/data
+  #   restart: unless-stopped
+
+volumes:
+  printsys-data:
+  # printsys-db:

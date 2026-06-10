@@ -4,7 +4,7 @@ Run with:  python -m app.seed
 Idempotent: skips any record whose code already exists.
 """
 from .database import Base, SessionLocal, engine
-from .models import Account, Customer, FinishingType, Machine, Settings, StockItem, Supplier
+from .models import Customer, FinishingType, Machine, Settings, StockItem, Supplier
 
 
 def _get_or_create(db, model, code, **values):
@@ -134,27 +134,9 @@ def seed() -> None:
         ))
         created += 1
 
-    # Standard chart of accounts (system_tag links the auto-posting accounts).
-    accounts = [
-        ("1000", "Cash & Bank", "Asset", "BANK"),
-        ("1100", "Accounts Receivable", "Asset", "AR"),
-        ("1200", "Inventory", "Asset", None),
-        ("1300", "SST Input Tax", "Asset", "SST_INPUT"),
-        ("2100", "Accounts Payable", "Liability", "AP"),
-        ("2200", "SST Output Tax", "Liability", "SST_OUTPUT"),
-        ("3000", "Owner's Capital", "Equity", None),
-        ("4000", "Sales", "Income", "SALES"),
-        ("4100", "Other Income", "Income", None),
-        ("5000", "Cost of Materials / Purchases", "Expense", "PURCHASES"),
-        ("6000", "Salaries & Wages", "Expense", None),
-        ("6100", "Rent", "Expense", None),
-        ("6200", "Utilities", "Expense", None),
-        ("6900", "General Expenses", "Expense", None),
-    ]
-    for code, name, atype, tag in accounts:
-        if not db.query(Account).filter(Account.code == code).first():
-            db.add(Account(code=code, name=name, type=atype, system_tag=tag))
-            created += 1
+    # Standard chart of accounts (shared with app startup).
+    from .defaults import ensure_standard_accounts
+    created += ensure_standard_accounts(db)
 
     db.commit()
     db.close()

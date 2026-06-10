@@ -74,9 +74,15 @@ def _seed_admin() -> None:
 def on_startup() -> None:
     # Import models so their tables are registered before create_all.
     from . import models  # noqa: F401
+    from .defaults import ensure_standard_accounts
 
     Base.metadata.create_all(bind=engine)
     _seed_admin()
+    db = SessionLocal()
+    try:
+        ensure_standard_accounts(db)   # GL chart must exist on any fresh install
+    finally:
+        db.close()
 
 
 @app.get("/health")

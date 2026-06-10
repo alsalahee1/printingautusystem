@@ -32,7 +32,9 @@ of standard sales, invoicing and accounts-receivable.
 ## Quick start
 
 ```bash
-./run.sh
+docker compose up -d     # Docker:  http://localhost:8000  (admin / admin)
+# — or, without Docker —
+./run.sh                 # local:   http://127.0.0.1:8000
 ```
 
 Then open <http://127.0.0.1:8000>. The first run installs dependencies and
