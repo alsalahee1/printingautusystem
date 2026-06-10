@@ -40,6 +40,7 @@ def login_user(request: Request, user) -> None:
     request.session["user"] = {
         "id": user.id, "username": user.username,
         "full_name": user.full_name, "role": user.role,
+        "permissions": [p for p in (user.permissions or "").split(",") if p],
     }
 
 
@@ -59,13 +60,20 @@ class AuthMiddleware(BaseHTTPMiddleware):
     """
 
     async def dispatch(self, request: Request, call_next):
+        from .audit import current_user_var
+        from .permissions import can_access
+
         path = request.url.path
         is_public = path in PUBLIC_PATHS or any(path.startswith(p) for p in PUBLIC_PREFIXES)
-        if not is_public and not request.session.get("user"):
-            return RedirectResponse("/login", status_code=303)
-        # Tag DB writes during this request with the acting user (for the audit log).
-        from .audit import current_user_var
         user = request.session.get("user")
+        if not is_public and not user:
+            return RedirectResponse("/login", status_code=303)
+        # Enforce functional-area permissions for authenticated, non-public paths.
+        if user and not is_public and not can_access(path, user.get("role", ""), user.get("permissions", [])):
+            request.session.setdefault("_flashes", []).append(
+                ("danger", "You don't have access to that section."))
+            return RedirectResponse("/", status_code=303)
+        # Tag DB writes during this request with the acting user (for the audit log).
         token = current_user_var.set(user["username"] if user else "system")
         try:
             return await call_next(request)

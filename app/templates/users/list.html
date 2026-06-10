@@ -3,7 +3,7 @@
 {% block heading %}<i class="bi bi-person-gear me-2"></i>Users{% endblock %}
 {% block content %}
 <div class="row g-3">
-  <div class="col-lg-7">
+  <div class="col-lg-8">
     <div class="card shadow-sm">
       <div class="card-header bg-white fw-semibold">Accounts</div>
       <div class="card-body p-0">
@@ -11,6 +11,7 @@
           <thead><tr><th class="ps-3">Username</th><th>Name</th><th>Role</th><th>Active</th><th></th></tr></thead>
           <tbody>
           {% for u in rows %}
+            {% set uperms = (u.permissions or '').split(',') %}
             <form id="u{{ u.id }}" action="/users/{{ u.id }}/update" method="post"></form>
             <tr>
               <td class="ps-3 fw-semibold">{{ u.username }}</td>
@@ -21,23 +22,39 @@
                 </select>
               </td>
               <td><input form="u{{ u.id }}" type="checkbox" name="active" class="form-check-input" {{ 'checked' if u.active else '' }}></td>
-              <td class="text-end pe-3">
-                <input form="u{{ u.id }}" name="password" type="password" class="form-control form-control-sm d-inline-block" style="width:130px" placeholder="reset password">
+              <td class="text-end pe-3" style="white-space:nowrap">
+                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#perm{{ u.id }}" title="Permissions"><i class="bi bi-shield-lock"></i></button>
+                <input form="u{{ u.id }}" name="password" type="password" class="form-control form-control-sm d-inline-block" style="width:120px" placeholder="reset pw">
                 <button form="u{{ u.id }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-check-lg"></i></button>
                 <form action="/users/{{ u.id }}/delete" method="post" class="d-inline" onsubmit="return confirm('Delete {{ u.username }}?')">
-                  <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
-                </form>
+                  <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form>
               </td>
             </tr>
+            <tr class="collapse" id="perm{{ u.id }}"><td colspan="5" class="bg-light">
+              {% if u.role == 'admin' %}
+                <span class="small text-muted">Admins have full access to every area.</span>
+              {% else %}
+                <div class="small text-muted mb-1">Allowed areas:</div>
+                <div class="row g-1">
+                  {% for key, label, _ in areas %}
+                  <div class="col-md-6"><div class="form-check">
+                    <input form="u{{ u.id }}" class="form-check-input" type="checkbox" name="permissions" value="{{ key }}"
+                           id="p{{ u.id }}{{ key }}" {{ 'checked' if key in uperms else '' }}>
+                    <label class="form-check-label small" for="p{{ u.id }}{{ key }}">{{ label }}</label>
+                  </div></div>
+                  {% endfor %}
+                </div>
+                <div class="small text-muted mt-1">Click the blue ✓ to save.</div>
+              {% endif %}
+            </td></tr>
           {% endfor %}
           </tbody>
         </table>
       </div>
     </div>
   </div>
-  <div class="col-lg-5">
-    <div class="card shadow-sm">
-      <div class="card-header bg-white fw-semibold">Add user</div>
+  <div class="col-lg-4">
+    <div class="card shadow-sm"><div class="card-header bg-white fw-semibold">Add user</div>
       <div class="card-body">
         <form action="/users/new" method="post">
           <div class="mb-2"><label class="form-label small">Username</label>
@@ -50,9 +67,15 @@
             <div class="col-6"><label class="form-label small">Password</label>
               <input type="password" name="password" class="form-control form-control-sm" required></div>
           </div>
+          <div class="mt-2"><div class="form-label small">Allowed areas (staff)</div>
+            {% for key, label, _ in areas %}
+            <div class="form-check"><input class="form-check-input" type="checkbox" name="permissions" value="{{ key }}" id="np{{ key }}">
+              <label class="form-check-label small" for="np{{ key }}">{{ label }}</label></div>
+            {% endfor %}
+          </div>
           <button class="btn btn-primary btn-sm w-100 mt-3"><i class="bi bi-person-plus me-1"></i>Create user</button>
         </form>
-        <p class="text-muted small mt-3 mb-0"><b>admin</b> can manage users &amp; settings; <b>staff</b> can use everything else.</p>
+        <p class="text-muted small mt-3 mb-0"><b>admin</b> = full access &amp; user management. <b>staff</b> = only the ticked areas.</p>
       </div>
     </div>
   </div>

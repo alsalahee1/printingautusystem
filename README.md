@@ -28,6 +28,7 @@ of standard sales, invoicing and accounts-receivable.
 | **12** | **Expenses & Bank Reconciliation** — quick expense entry (auto-posted to GL), reconcile cash/bank accounts against statements | ✅ Done |
 | **13** | **SST-02 Tax Return** — bi-monthly Malaysian SST summary (output vs input tax, by rate), printable | ✅ Done |
 | **14** | **Audit Log** — automatic who-changed-what trail across every module (admin only) | ✅ Done |
+| **15** | **Role-based permissions** — grant staff access to specific functional areas; enforced in nav and at the request | ✅ Done |
 
 ## Quick start
 
@@ -296,3 +297,13 @@ Full bookkeeping on top of the operational data.
 - Implemented with SQLAlchemy flush listeners, so it covers every module
   without per-router code; noisy line-items and derived rows are excluded.
 - **Admin-only viewer** with entity/action filters.
+
+## Module 15 — Role-Based Permissions
+
+- **Functional areas** — Sales, Invoicing, Purchasing, Banking, Inventory &
+  master data, Accounting (GL & SST), Reports, Import.
+- **Per-user grants** — admins have everything; each staff user is granted a
+  subset of areas from the Users screen.
+- **Enforced two ways** — nav sections hide what a user can't use, and the auth
+  middleware blocks direct access to ungranted areas (redirecting with a
+  message). Users, audit log and settings remain admin-only.

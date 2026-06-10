@@ -25,11 +25,12 @@ def test_admin_can_reach_user_admin(client):
 def test_staff_blocked_from_user_admin(client, anon):
     # Admin creates a staff user, then that user is blocked from /users.
     client.post("/users/new", data={"username": "staff1", "full_name": "Staff One",
-                                    "role": "staff", "password": "pw12345"})
+                                    "role": "staff", "password": "pw12345",
+                                    "permissions": ["invoicing"]})
     anon.post("/login", data={"username": "staff1", "password": "pw12345"})
     r = anon.get("/users", follow_redirects=False)
-    assert r.status_code == 303                       # redirected away
-    assert anon.get("/invoices", follow_redirects=False).status_code == 200  # but can work
+    assert r.status_code == 303                       # admin-only: redirected away
+    assert anon.get("/invoices", follow_redirects=False).status_code == 200  # granted area works
 
 
 def test_logout_clears_session(client):

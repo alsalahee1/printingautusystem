@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from ..auth import current_user, hash_password, login_user, logout_user, verify_password
 from ..database import get_db
 from ..models import USER_ROLES, User
+from ..permissions import AREA_KEYS, PERMISSION_AREAS
 from ..web import flash, templates
 
 router = APIRouter()
@@ -19,6 +20,11 @@ router = APIRouter()
 def _require_admin(request: Request) -> bool:
     u = current_user(request)
     return bool(u and u.get("role") == "admin")
+
+
+def _permissions_csv(form) -> str:
+    selected = [k for k in form.getlist("permissions") if k in AREA_KEYS]
+    return ",".join(selected)
 
 
 # --------------------------------------------------------------------------- #
@@ -63,7 +69,8 @@ def list_users(request: Request, db: Session = Depends(get_db)):
         return RedirectResponse("/", status_code=303)
     rows = db.execute(select(User).order_by(User.username)).scalars().all()
     return templates.TemplateResponse(
-        request, "users/list.html", {"active_nav": "users", "rows": rows, "roles": USER_ROLES}
+        request, "users/list.html",
+        {"active_nav": "users", "rows": rows, "roles": USER_ROLES, "areas": PERMISSION_AREAS}
     )
 
 
@@ -83,6 +90,7 @@ async def create_user(request: Request, db: Session = Depends(get_db)):
         username=username,
         full_name=form.get("full_name") or "",
         role=form.get("role") if form.get("role") in USER_ROLES else "staff",
+        permissions=_permissions_csv(form),
         password_hash=hash_password(form.get("password")),
     ))
     db.commit()
@@ -100,6 +108,7 @@ async def update_user(uid: int, request: Request, db: Session = Depends(get_db))
         user.full_name = form.get("full_name") or ""
         if form.get("role") in USER_ROLES:
             user.role = form.get("role")
+        user.permissions = _permissions_csv(form)
         user.active = form.get("active") is not None
         if form.get("password"):
             user.password_hash = hash_password(form.get("password"))

@@ -745,6 +745,7 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(255), default="")
     full_name: Mapped[str] = mapped_column(String(120), default="")
     role: Mapped[str] = mapped_column(String(20), default="staff")
+    permissions: Mapped[str] = mapped_column(Text, default="")   # CSV of area keys (non-admin)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
