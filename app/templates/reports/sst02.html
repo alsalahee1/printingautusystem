@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}SST-02 Return{% endblock %}
+{% block heading %}<i class="bi bi-receipt-cutoff me-2"></i>SST-02 Tax Return (summary){% endblock %}
+{% block actions %}<button onclick="window.print()" class="btn btn-outline-secondary btn-sm"><i class="bi bi-printer me-1"></i>Print</button>{% endblock %}
+{% block content %}
+<form method="get" class="card shadow-sm mb-3 no-print"><div class="card-body d-flex align-items-end gap-3">
+  <div><label class="form-label small mb-0">Taxable period from</label>
+    <input type="date" name="start" value="{{ start }}" class="form-control form-control-sm"></div>
+  <div><label class="form-label small mb-0">to</label>
+    <input type="date" name="end" value="{{ end }}" class="form-control form-control-sm"></div>
+  <button class="btn btn-primary btn-sm">Apply</button>
+  <span class="text-muted small ms-2">Defaults to the current bi-monthly period.</span>
+</div></form>
+
+<div class="card shadow-sm mb-3"><div class="card-body">
+  <div class="d-flex justify-content-between">
+    <div><div class="text-muted small">Registered person</div>
+      <div class="fw-semibold">{{ settings.company_name }}</div>
+      {% if settings.company_tax_no %}<div class="small">SST No: {{ settings.company_tax_no }}</div>{% endif %}
+    </div>
+    <div class="text-end"><div class="text-muted small">Taxable period</div>
+      <div class="fw-semibold">{{ start }} → {{ end }}</div></div>
+  </div>
+</div></div>
+
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white fw-semibold">Part A — Sales tax on supplies (output)</div>
+      <div class="card-body p-0">
+        <table class="table mb-0">
+          <thead><tr><th class="ps-3">Rate</th><th class="text-end">Taxable value</th><th class="text-end pe-3">Tax</th></tr></thead>
+          <tbody>
+          {% for r in rate_rows %}
+            <tr><td class="ps-3">{{ "%g"|format(r.rate) }}%</td>
+              <td class="text-end">{{ "%.2f"|format(r.taxable) }}</td>
+              <td class="text-end pe-3">{{ "%.2f"|format(r.tax) }}</td></tr>
+          {% else %}
+            <tr><td colspan="3" class="text-center text-muted py-3">No taxable supplies in this period.</td></tr>
+          {% endfor %}
+          </tbody>
+          <tfoot class="table-light"><tr class="fw-bold">
+            <td class="ps-3">Total output tax</td>
+            <td class="text-end">{{ "%.2f"|format(taxable_sales) }}</td>
+            <td class="text-end pe-3">{{ "%.2f"|format(output_tax) }}</td></tr></tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <div class="d-flex justify-content-between"><span class="text-muted">Output tax (Part A)</span>
+        <span>{{ settings.currency }} {{ "%.2f"|format(output_tax) }}</span></div>
+      <div class="d-flex justify-content-between"><span class="text-muted">Input tax on purchases</span>
+        <span>− {{ "%.2f"|format(input_tax) }}</span></div>
+      <div class="small text-muted">(Taxable purchases {{ "%.2f"|format(taxable_purchases) }})</div>
+      <hr class="my-2">
+      <div class="d-flex justify-content-between fs-5 fw-bold">
+        <span>Net SST payable</span>
+        <span class="{{ 'text-danger' if net_payable > 0 else 'text-success' }}">{{ settings.currency }} {{ "%.2f"|format(net_payable) }}</span>
+      </div>
+    </div></div>
+  </div>
+</div>
+
+<div class="alert alert-secondary small mt-3">
+  This is a working summary to support your SST-02 filing — output tax collected on sales versus input tax
+  recorded on purchases/expenses for the period. Malaysian Sales Tax is single-stage; whether input tax is
+  deductible depends on your registration. Verify figures and file through the official MyTax / MySST portal.
+</div>
+{% endblock %}

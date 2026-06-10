@@ -26,6 +26,7 @@ of standard sales, invoicing and accounts-receivable.
 | **10** | **CSV Import** — bulk-load customers & stock from AutoCount exports, upsert by code | ✅ Done |
 | **11** | **General Ledger** — chart of accounts, auto-postings from documents, manual journals, Trial Balance / P&L / Balance Sheet | ✅ Done |
 | **12** | **Expenses & Bank Reconciliation** — quick expense entry (auto-posted to GL), reconcile cash/bank accounts against statements | ✅ Done |
+| **13** | **SST-02 Tax Return** — bi-monthly Malaysian SST summary (output vs input tax, by rate), printable | ✅ Done |
 
 ## Quick start
 
@@ -273,3 +274,12 @@ Full bookkeeping on top of the operational data.
   closing balance, and tick the transactions that have cleared. The worksheet
   shows book vs cleared vs statement and the remaining difference; cleared
   marks are saved so you can reconcile over multiple sessions.
+
+## Module 13 — SST-02 Tax Return
+
+- **Bi-monthly summary** — output tax collected on sales versus input tax paid
+  on purchases and expenses, for the Malaysian SST taxable period (auto-detected
+  Jan-Feb, Mar-Apr, … or any custom range).
+- **Breakdown by rate** with taxable values, plus the net SST payable.
+- Printable, with the registered-person SST number from Settings. Intended as a
+  working summary to support filing through the official MyTax / MySST portal.

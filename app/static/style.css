@@ -17,3 +17,11 @@ body { background: #f4f6f9; }
 .stat-card .display-6 { font-weight: 600; }
 .table thead th { font-size: .78rem; text-transform: uppercase; letter-spacing: .03em; color: #6c757d; }
 .required label::after { content: " *"; color: #dc3545; }
+
+/* Clean printing: drop the app chrome and show only the report body. */
+@media print {
+  .sidebar, .topbar, .no-print { display: none !important; }
+  .content { width: 100% !important; }
+  body { background: #fff; }
+  .card { border: 1px solid #dee2e6 !important; box-shadow: none !important; }
+}

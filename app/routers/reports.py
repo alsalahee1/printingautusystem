@@ -8,7 +8,7 @@ Turns the captured documents into management views:
   * printable per-customer statements.
 """
 from collections import defaultdict
-from datetime import date
+from datetime import date, timedelta
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -18,6 +18,7 @@ from sqlalchemy.orm import Session
 from ..database import get_db
 from ..models import (
     Customer,
+    Expense,
     Invoice,
     Job,
     StockItem,
@@ -223,4 +224,66 @@ def customer_statement(cid: int, request: Request, db: Session = Depends(get_db)
         request, "reports/statement.html",
         {"settings": get_settings(db), "cust": cust, "invoices": invoices,
          "total": total, "paid": paid, "balance": balance, "today": date.today()},
+    )
+
+
+def _sst_period(today: date):
+    """The Malaysian bi-monthly SST taxable period containing `today`
+    (Jan-Feb, Mar-Apr, May-Jun, Jul-Aug, Sep-Oct, Nov-Dec)."""
+    start_month = ((today.month - 1) // 2) * 2 + 1
+    start = date(today.year, start_month, 1)
+    if start_month + 2 > 12:
+        end = date(today.year, 12, 31)
+    else:
+        end = date(today.year, start_month + 2, 1) - timedelta(days=1)
+    return start, end
+
+
+@router.get("/reports/sst02", response_class=HTMLResponse)
+def sst02_report(request: Request, db: Session = Depends(get_db)):
+    qp = request.query_params
+    ds, de = _sst_period(date.today())
+    try:
+        start = date.fromisoformat(qp["start"]) if qp.get("start") else ds
+    except ValueError:
+        start = ds
+    try:
+        end = date.fromisoformat(qp["end"]) if qp.get("end") else de
+    except ValueError:
+        end = de
+
+    # Output tax (sales tax collected) from customer invoices, grouped by rate.
+    out_by_rate: dict[float, dict] = defaultdict(lambda: {"taxable": 0.0, "tax": 0.0})
+    output_tax = taxable_sales = 0.0
+    for inv in _active_invoices(db):
+        if not (start <= inv.date <= end) or inv.tax_pct <= 0:
+            continue
+        out_by_rate[inv.tax_pct]["taxable"] += inv.subtotal
+        out_by_rate[inv.tax_pct]["tax"] += inv.tax_amount
+        taxable_sales += inv.subtotal
+        output_tax += inv.tax_amount
+
+    # Input tax (sales tax paid) from supplier bills and direct expenses.
+    input_tax = taxable_purchases = 0.0
+    for b in _active_bills(db):
+        if start <= b.date <= end and b.tax_pct > 0:
+            taxable_purchases += b.subtotal
+            input_tax += b.tax_amount
+    for ex in db.execute(select(Expense)).scalars():
+        if start <= ex.date <= end and ex.tax_pct > 0:
+            taxable_purchases += ex.amount
+            input_tax += ex.tax_amount
+
+    output_tax = round(output_tax, 2)
+    input_tax = round(input_tax, 2)
+    rate_rows = [{"rate": r, "taxable": round(v["taxable"], 2), "tax": round(v["tax"], 2)}
+                 for r, v in sorted(out_by_rate.items())]
+    return templates.TemplateResponse(
+        request, "reports/sst02.html",
+        {"active_nav": "sst02", "settings": get_settings(db),
+         "start": start.isoformat(), "end": end.isoformat(),
+         "rate_rows": rate_rows,
+         "taxable_sales": round(taxable_sales, 2), "output_tax": output_tax,
+         "taxable_purchases": round(taxable_purchases, 2), "input_tax": input_tax,
+         "net_payable": round(output_tax - input_tax, 2)},
     )
