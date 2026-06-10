@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Audit Log{% endblock %}
+{% block heading %}<i class="bi bi-clock-history me-2"></i>Audit Log{% endblock %}
+{% block content %}
+<form method="get" class="card shadow-sm mb-3"><div class="card-body d-flex align-items-end gap-3 flex-wrap">
+  <div><label class="form-label small mb-0">Entity</label>
+    <select name="entity" class="form-select form-select-sm">
+      <option value="">All</option>
+      {% for e in entities %}<option value="{{ e }}" {{ 'selected' if sel_entity == e else '' }}>{{ e }}</option>{% endfor %}
+    </select></div>
+  <div><label class="form-label small mb-0">Action</label>
+    <select name="action" class="form-select form-select-sm">
+      <option value="">All</option>
+      {% for a in ['create','update','delete'] %}<option value="{{ a }}" {{ 'selected' if sel_action == a else '' }}>{{ a }}</option>{% endfor %}
+    </select></div>
+  <button class="btn btn-primary btn-sm">Filter</button>
+  {% if sel_entity or sel_action %}<a href="/audit-log" class="btn btn-outline-secondary btn-sm">Clear</a>{% endif %}
+  <span class="ms-auto small text-muted">Showing latest {{ rows|length }} entries</span>
+</div></form>
+
+<div class="card shadow-sm"><div class="card-body p-0">
+  {% if rows %}
+  <table class="table table-sm align-middle mb-0">
+    <thead><tr><th class="ps-3">When (UTC)</th><th>User</th><th>Action</th><th>Entity</th><th>ID</th><th>Detail</th></tr></thead>
+    <tbody>
+    {% for r in rows %}
+      <tr>
+        <td class="ps-3">{{ r.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+        <td>{{ r.username }}</td>
+        <td><span class="badge bg-{{ colors.get(r.action, 'secondary') }}">{{ r.action }}</span></td>
+        <td class="small">{{ r.entity }}</td>
+        <td class="small text-muted">{{ r.entity_id if r.entity_id is not none else '—' }}</td>
+        <td>{{ r.summary or '—' }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="text-muted text-center py-5 mb-0">No audit entries match.</p>{% endif %}
+</div></div>
+{% endblock %}

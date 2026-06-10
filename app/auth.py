@@ -63,4 +63,11 @@ class AuthMiddleware(BaseHTTPMiddleware):
         is_public = path in PUBLIC_PATHS or any(path.startswith(p) for p in PUBLIC_PREFIXES)
         if not is_public and not request.session.get("user"):
             return RedirectResponse("/login", status_code=303)
-        return await call_next(request)
+        # Tag DB writes during this request with the acting user (for the audit log).
+        from .audit import current_user_var
+        user = request.session.get("user")
+        token = current_user_var.set(user["username"] if user else "system")
+        try:
+            return await call_next(request)
+        finally:
+            current_user_var.reset(token)

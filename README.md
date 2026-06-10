@@ -27,6 +27,7 @@ of standard sales, invoicing and accounts-receivable.
 | **11** | **General Ledger** — chart of accounts, auto-postings from documents, manual journals, Trial Balance / P&L / Balance Sheet | ✅ Done |
 | **12** | **Expenses & Bank Reconciliation** — quick expense entry (auto-posted to GL), reconcile cash/bank accounts against statements | ✅ Done |
 | **13** | **SST-02 Tax Return** — bi-monthly Malaysian SST summary (output vs input tax, by rate), printable | ✅ Done |
+| **14** | **Audit Log** — automatic who-changed-what trail across every module (admin only) | ✅ Done |
 
 ## Quick start
 
@@ -283,3 +284,13 @@ Full bookkeeping on top of the operational data.
 - **Breakdown by rate** with taxable values, plus the net SST payable.
 - Printable, with the registered-person SST number from Settings. Intended as a
   working summary to support filing through the official MyTax / MySST portal.
+
+## Module 14 — Audit Log
+
+- **Automatic, app-wide trail** — every create / update / delete of a main
+  record (customers, quotations, jobs, invoices, payments, bills, expenses,
+  journals, accounts, users, settings…) is logged with the **acting user**,
+  timestamp, entity, record id and a short description.
+- Implemented with SQLAlchemy flush listeners, so it covers every module
+  without per-router code; noisy line-items and derived rows are excluded.
+- **Admin-only viewer** with entity/action filters.

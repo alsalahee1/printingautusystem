@@ -867,3 +867,23 @@ class ReconciledTxn(Base):
     account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"), index=True)
     txn_key: Mapped[str] = mapped_column(String(200), index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+# ---------------------------------------------------------------------------
+# Module 14: Audit log
+# ---------------------------------------------------------------------------
+
+class AuditLog(Base):
+    """An append-only record of who created / changed / deleted what.
+
+    Populated automatically by SQLAlchemy flush listeners (see app.audit), so
+    every module is covered without per-router code."""
+    __tablename__ = "audit_logs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    timestamp: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
+    username: Mapped[str] = mapped_column(String(60), default="system", index=True)
+    action: Mapped[str] = mapped_column(String(10), default="update")   # create/update/delete
+    entity: Mapped[str] = mapped_column(String(60), index=True)         # table name
+    entity_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    summary: Mapped[str] = mapped_column(String(200), default="")

@@ -9,10 +9,12 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
+from . import audit  # noqa: F401 - registers the audit flush listener on import
 from .auth import AuthMiddleware, hash_password
 from .database import Base, SessionLocal, engine
 from .routers import (
     accounting,
+    audit_log,
     dashboard,
     expenses,
     imports,
@@ -46,6 +48,7 @@ app.include_router(purchasing.router)
 app.include_router(reports.router)
 app.include_router(ledger.router)
 app.include_router(expenses.router)
+app.include_router(audit_log.router)
 app.include_router(imports.router)
 for r in master_data.routers:
     app.include_router(r)
