@@ -16,6 +16,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ..database import get_db
+from ..exporting import csv_response
 from ..models import (
     Customer,
     Expense,
@@ -121,6 +122,18 @@ def sales_report(request: Request, db: Session = Depends(get_db)):
     )
 
 
+@router.get("/reports/sales.csv")
+def sales_csv(request: Request, db: Session = Depends(get_db)):
+    start, end = _range(request)
+    invoices = [i for i in _active_invoices(db) if start <= i.date <= end]
+    rows = [[i.date.isoformat(), i.number, i.customer.name, i.status,
+             f"{i.total:.2f}", f"{i.paid_amount:.2f}", f"{i.balance:.2f}"]
+            for i in sorted(invoices, key=lambda x: x.date)]
+    return csv_response(
+        f"sales_{start}_{end}.csv",
+        ["Date", "Invoice", "Customer", "Status", "Total", "Paid", "Balance"], rows)
+
+
 # --------------------------------------------------------------------------- #
 # Job profitability
 # --------------------------------------------------------------------------- #
@@ -189,6 +202,17 @@ def stock_valuation(request: Request, db: Session = Depends(get_db)):
         {"active_nav": "reports", "settings": get_settings(db),
          "groups": sorted(groups.items()), "grand": round(grand, 2)},
     )
+
+
+@router.get("/reports/stock-valuation.csv")
+def stock_valuation_csv(request: Request, db: Session = Depends(get_db)):
+    items = db.execute(select(StockItem).order_by(StockItem.category, StockItem.name)).scalars().all()
+    rows = [[s.code, s.name, s.category, s.unit, f"{(s.qty_on_hand or 0):g}",
+             f"{(s.cost_price or 0):.4f}", f"{(s.qty_on_hand or 0) * (s.cost_price or 0):.2f}"]
+            for s in items]
+    return csv_response(
+        "stock-valuation.csv",
+        ["Code", "Name", "Category", "Unit", "On Hand", "Unit Cost", "Value"], rows)
 
 
 # --------------------------------------------------------------------------- #

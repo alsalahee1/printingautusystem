@@ -19,6 +19,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ..database import get_db
+from ..exporting import csv_response
 from ..models import (
     PAYMENT_METHODS,
     PO_STATUSES,
@@ -418,6 +419,20 @@ def _bucket(days: int) -> str:
     if days <= 90:
         return "61–90"
     return "90+"
+
+
+@router.get("/ap.csv")
+def ap_csv(request: Request, db: Session = Depends(get_db)):
+    open_bills = [b for b in db.execute(select(SupplierBill)).scalars().all()
+                  if not b.cancelled and b.balance > 0.005]
+    rows = []
+    for bill in sorted(open_bills, key=lambda x: (x.supplier.name, x.date)):
+        ref = bill.due_date or bill.date
+        rows.append([bill.supplier.name, bill.number, bill.date.isoformat(),
+                     (bill.due_date or bill.date).isoformat(), _bucket((date.today() - ref).days),
+                     f"{bill.balance:.2f}"])
+    return csv_response("accounts-payable.csv",
+                        ["Supplier", "Bill", "Date", "Due", "Aging", "Balance"], rows)
 
 
 @router.get("/ap", response_class=HTMLResponse)

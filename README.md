@@ -29,6 +29,7 @@ of standard sales, invoicing and accounts-receivable.
 | **13** | **SST-02 Tax Return** — bi-monthly Malaysian SST summary (output vs input tax, by rate), printable | ✅ Done |
 | **14** | **Audit Log** — automatic who-changed-what trail across every module (admin only) | ✅ Done |
 | **15** | **Role-based permissions** — grant staff access to specific functional areas; enforced in nav and at the request | ✅ Done |
+| **16** | **CSV export** — one-click Excel export of the key reports and master data | ✅ Done |
 
 ## Quick start
 
@@ -307,3 +308,13 @@ Full bookkeeping on top of the operational data.
 - **Enforced two ways** — nav sections hide what a user can't use, and the auth
   middleware blocks direct access to ungranted areas (redirecting with a
   message). Users, audit log and settings remain admin-only.
+
+## Module 16 — CSV Export
+
+- **One-click "Export CSV"** on Trial Balance, Profit & Loss, Balance Sheet,
+  Sales summary, AR aging, AP aging, Stock valuation and the Audit log
+  (date-range filters are carried into the export).
+- **Master-data export** of Customers and Stock from the Import/Export screen —
+  the same column format the importer reads, so it round-trips cleanly with
+  AutoCount or a spreadsheet.
+- Files are UTF-8 (with a BOM) so Excel opens them with correct names.

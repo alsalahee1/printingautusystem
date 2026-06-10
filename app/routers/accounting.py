@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 
 from .. import einvoice, pdf
 from ..database import get_db
+from ..exporting import csv_response
 from ..mailer import send_email
 from ..models import (
     PAYMENT_METHODS,
@@ -364,6 +365,20 @@ def _bucket(days: int) -> str:
     if days <= 90:
         return "61–90"
     return "90+"
+
+
+@router.get("/ar.csv")
+def ar_csv(request: Request, db: Session = Depends(get_db)):
+    open_invoices = [i for i in db.execute(select(Invoice)).scalars().all()
+                     if not i.cancelled and i.balance > 0.005]
+    rows = []
+    for inv in sorted(open_invoices, key=lambda x: (x.customer.name, x.date)):
+        ref = inv.due_date or inv.date
+        rows.append([inv.customer.name, inv.number, inv.date.isoformat(),
+                     (inv.due_date or inv.date).isoformat(), _bucket((date.today() - ref).days),
+                     f"{inv.balance:.2f}"])
+    return csv_response("accounts-receivable.csv",
+                        ["Customer", "Invoice", "Date", "Due", "Aging", "Balance"], rows)
 
 
 @router.get("/ar", response_class=HTMLResponse)

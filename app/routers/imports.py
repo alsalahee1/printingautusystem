@@ -15,10 +15,33 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ..database import get_db
+from ..exporting import csv_response
 from ..models import STOCK_CATEGORIES, STOCK_UNITS, Customer, StockItem
 from ..web import flash, templates
 
 router = APIRouter()
+
+
+@router.get("/export/customers.csv")
+def export_customers(request: Request, db: Session = Depends(get_db)):
+    rows = db.execute(select(Customer).order_by(Customer.code)).scalars().all()
+    data = [[c.code, c.name, c.company, c.phone, c.email, c.address, c.city,
+             c.tax_no, c.tin, c.reg_no, f"{c.credit_limit:g}", c.payment_terms_days]
+            for c in rows]
+    return csv_response("customers.csv",
+                        ["Code", "Name", "Company", "Phone", "Email", "Address", "City",
+                         "SST", "TIN", "RegNo", "CreditLimit", "Terms"], data)
+
+
+@router.get("/export/stock.csv")
+def export_stock(request: Request, db: Session = Depends(get_db)):
+    rows = db.execute(select(StockItem).order_by(StockItem.code)).scalars().all()
+    data = [[s.code, s.name, s.category, s.unit, s.gsm or "", f"{s.cost_price:g}",
+             f"{s.sell_price:g}", f"{s.qty_on_hand:g}", f"{s.reorder_level:g}"]
+            for s in rows]
+    return csv_response("stock.csv",
+                        ["ItemCode", "Description", "Category", "UOM", "GSM", "Cost",
+                         "SellingPrice", "BalanceQty", "ReorderLevel"], data)
 
 
 def _norm(h: str) -> str:

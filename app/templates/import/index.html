@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 {% block title %}Import Data{% endblock %}
-{% block heading %}<i class="bi bi-upload me-2"></i>Import Data (CSV){% endblock %}
+{% block heading %}<i class="bi bi-upload me-2"></i>Import / Export Data (CSV){% endblock %}
+{% block actions %}
+  <a href="/export/customers.csv" class="btn btn-outline-success btn-sm"><i class="bi bi-download me-1"></i>Export Customers</a>
+  <a href="/export/stock.csv" class="btn btn-outline-success btn-sm"><i class="bi bi-download me-1"></i>Export Stock</a>
+{% endblock %}
 {% block content %}
 <div class="alert alert-info">
   Export your <b>Customers</b> or <b>Stock items</b> from AutoCount (or any system) to <b>CSV</b> and upload here.

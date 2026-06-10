@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from .. import gl
 from ..database import get_db
+from ..exporting import csv_response
 from ..models import ACCOUNT_TYPES, Account, JournalEntry, JournalLine
 from ..web import flash, templates
 from .quotations import _f, get_settings
@@ -161,6 +162,17 @@ def trial_balance(request: Request, db: Session = Depends(get_db)):
          "start": start.isoformat(), "end": end.isoformat()})
 
 
+@router.get("/trial-balance.csv")
+def trial_balance_csv(request: Request, db: Session = Depends(get_db)):
+    start, end = _date_range(request)
+    rows, td, tc = gl.trial_balance(db, start, end)
+    data = [[r["account"].code, r["account"].name, r["account"].type,
+             f"{r['debit']:.2f}", f"{r['credit']:.2f}"] for r in rows]
+    data.append(["", "TOTAL", "", f"{td:.2f}", f"{tc:.2f}"])
+    return csv_response(f"trial-balance_{start}_{end}.csv",
+                        ["Code", "Account", "Type", "Debit", "Credit"], data)
+
+
 @router.get("/profit-loss", response_class=HTMLResponse)
 def profit_loss(request: Request, db: Session = Depends(get_db)):
     start, end = _date_range(request)
@@ -169,6 +181,20 @@ def profit_loss(request: Request, db: Session = Depends(get_db)):
         request, "ledger/profit_loss.html",
         {"active_nav": "profit_loss", "settings": get_settings(db), "d": data,
          "start": start.isoformat(), "end": end.isoformat()})
+
+
+@router.get("/profit-loss.csv")
+def profit_loss_csv(request: Request, db: Session = Depends(get_db)):
+    start, end = _date_range(request)
+    d = gl.income_statement(db, start, end)
+    rows = [["Income", "", ""]]
+    rows += [["", r["account"].name, f"{r['balance']:.2f}"] for r in d["income"]]
+    rows.append(["", "Total income", f"{d['total_income']:.2f}"])
+    rows.append(["Expenses", "", ""])
+    rows += [["", r["account"].name, f"{r['balance']:.2f}"] for r in d["expense"]]
+    rows.append(["", "Total expenses", f"{d['total_expense']:.2f}"])
+    rows.append(["", "Net profit/(loss)", f"{d['net_profit']:.2f}"])
+    return csv_response(f"profit-loss_{start}_{end}.csv", ["Section", "Account", "Amount"], rows)
 
 
 @router.get("/balance-sheet", response_class=HTMLResponse)
@@ -183,6 +209,29 @@ def balance_sheet(request: Request, db: Session = Depends(get_db)):
         request, "ledger/balance_sheet.html",
         {"active_nav": "balance_sheet", "settings": get_settings(db), "d": data,
          "as_of": as_of.isoformat()})
+
+
+@router.get("/balance-sheet.csv")
+def balance_sheet_csv(request: Request, db: Session = Depends(get_db)):
+    from datetime import date as _date
+    qp = request.query_params
+    try:
+        as_of = _date.fromisoformat(qp["as_of"]) if qp.get("as_of") else _date.today()
+    except ValueError:
+        as_of = _date.today()
+    d = gl.balance_sheet(db, as_of)
+    rows = [["Assets", "", ""]]
+    rows += [["", r["account"].name, f"{r['balance']:.2f}"] for r in d["assets"]]
+    rows.append(["", "Total Assets", f"{d['total_assets']:.2f}"])
+    rows.append(["Liabilities", "", ""])
+    rows += [["", r["account"].name, f"{r['balance']:.2f}"] for r in d["liabilities"]]
+    rows.append(["", "Total Liabilities", f"{d['total_liabilities']:.2f}"])
+    rows.append(["Equity", "", ""])
+    rows += [["", r["account"].name, f"{r['balance']:.2f}"] for r in d["equity"]]
+    rows.append(["", "Current period earnings", f"{d['current_earnings']:.2f}"])
+    rows.append(["", "Total Equity", f"{d['total_equity_with_earnings']:.2f}"])
+    rows.append(["", "Total Liabilities + Equity", f"{d['total_liab_equity']:.2f}"])
+    return csv_response(f"balance-sheet_{as_of}.csv", ["Section", "Account", "Amount"], rows)
 
 
 @router.get("/accounts/{aid}/ledger", response_class=HTMLResponse)

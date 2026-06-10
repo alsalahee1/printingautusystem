@@ -6,12 +6,25 @@ from sqlalchemy.orm import Session
 
 from ..auth import current_user
 from ..database import get_db
+from ..exporting import csv_response
 from ..models import AuditLog
 from ..web import flash, templates
 
 router = APIRouter()
 
 ACTION_COLORS = {"create": "success", "update": "info", "delete": "danger"}
+
+
+@router.get("/audit-log.csv")
+def audit_log_csv(request: Request, db: Session = Depends(get_db)):
+    u = current_user(request)
+    if not u or u.get("role") != "admin":
+        return RedirectResponse("/", status_code=303)
+    rows = db.execute(select(AuditLog).order_by(AuditLog.id.desc()).limit(5000)).scalars().all()
+    data = [[r.timestamp.strftime("%Y-%m-%d %H:%M:%S"), r.username, r.action,
+             r.entity, r.entity_id if r.entity_id is not None else "", r.summary] for r in rows]
+    return csv_response("audit-log.csv",
+                        ["Timestamp (UTC)", "User", "Action", "Entity", "ID", "Detail"], data)
 
 
 @router.get("/audit-log", response_class=HTMLResponse)
